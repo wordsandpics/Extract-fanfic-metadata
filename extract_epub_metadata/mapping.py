@@ -92,6 +92,7 @@ TITLEPAGE_LABEL_TO_KEY = {
 # makes them silently dropped, no extra filtering code needed.
 
 _CATEGORY_IS_FANDOM_SITES = {'archiveofourown.org', 'fanfiction.net', 'www.fanfiction.net'}
+_FFNET_SITES = {'fanfiction.net', 'www.fanfiction.net', 'm.fanfiction.net'}
 
 LIST_KEYS = {
     'warnings', 'fandoms', 'ships', 'characters', 'freeformtags',
@@ -450,6 +451,14 @@ def _derive_fields(fields):
 
     if site and site in SITE_ABBREV:
         fields.setdefault('siteabbrev', SITE_ABBREV[site])
+
+    # fanfiction.net shows ratings as "Fiction T" (the FictionRatings scale);
+    # FanFicFare stores just "T", so match it whichever tool saved the file.
+    rating = fields.get('rating')
+    if site in _FFNET_SITES and isinstance(rating, str):
+        m = re.fullmatch(r'\s*Fiction\s+(K\+?|T|MA?)\s*', rating)
+        if m:
+            fields['rating'] = m.group(1)
 
     fields.setdefault('sectionUrl', story_url)
 

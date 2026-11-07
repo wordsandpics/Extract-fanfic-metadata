@@ -30,7 +30,7 @@ def altered(transform, omitted=()):
 class FicLabTest(unittest.TestCase):
 
     def test_synthetic_ficlab_variants(self):
-        cases = [('ficlab-multichapter-count-priority.epub', 101933, 23, 'Fiction M', '98000358', '2012-02-01T05:34:56+00:00', '2012-07-05T21:00:07+00:00'), ('ficlab-timestamp-day-boundary.epub', 4054, 1, 'Fiction T', '98000363', '2012-12-29T23:59:29+00:00', '2012-12-29T23:59:29+00:00'), ('ficlab-rating-k-plus.epub', 5661, 1, 'Fiction K+', '98000368', '2012-01-01T05:30:09+00:00', '2012-01-01T05:30:09+00:00'), ('ficlab-mixed-tags.epub', 2944, 1, 'Fiction K+', '98000373', '2010-08-17T15:51:19+00:00', '2010-08-17T15:51:19+00:00')]
+        cases = [('ficlab-multichapter-count-priority.epub', 101933, 23, 'M', '98000358', '2012-02-01T05:34:56+00:00', '2012-07-05T21:00:07+00:00'), ('ficlab-timestamp-day-boundary.epub', 4054, 1, 'T', '98000363', '2012-12-29T23:59:29+00:00', '2012-12-29T23:59:29+00:00'), ('ficlab-rating-k-plus.epub', 5661, 1, 'K+', '98000368', '2012-01-01T05:30:09+00:00', '2012-01-01T05:30:09+00:00'), ('ficlab-mixed-tags.epub', 2944, 1, 'K+', '98000373', '2010-08-17T15:51:19+00:00', '2010-08-17T15:51:19+00:00')]
         for filename, words, chapters, rating, author_id, published, updated in cases:
             with self.subTest(filename=filename):
                 fields, sources = extract_fields(FIXTURES / filename)

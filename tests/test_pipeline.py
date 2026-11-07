@@ -215,12 +215,28 @@ class ParagraphUnknownTotalTest(unittest.TestCase):
         self.assertNotIn('numChaptersTotal', fields)
         self.assertEqual(sources.get('numChapters'), 'fff_titlepage')
 
+class FfnetRatingTest(unittest.TestCase):
+
+    def test_fiction_prefix_dropped_only_for_fanfiction_net_ratings(self):
+        from extract_epub_metadata.mapping import _derive_fields
+        cases = [('https://www.fanfiction.net/s/1/', 'Fiction K+', 'K+'),
+                 ('https://m.fanfiction.net/s/1/', 'Fiction MA', 'MA'),
+                 ('https://www.fanfiction.net/s/1/', 'Fiction Something', 'Fiction Something'),
+                 ('https://archiveofourown.org/works/1', 'Fiction M', 'Fiction M')]
+        for url, rating, expected in cases:
+            with self.subTest(url=url, rating=rating):
+                fields = {'storyUrl': url, 'rating': rating}
+                _derive_fields(fields)
+                self.assertEqual(fields['rating'], expected)
+
+
 class FfnetViaFichubTest(unittest.TestCase):
     EPUB_FIXTURE = TESTS_DIR / 'fixtures' / 'fichub-ffnet-composite.epub'
 
     def test_recovers_fields_from_composite_stats_line(self):
         fields, sources = extract_fields(str(self.EPUB_FIXTURE))
-        self.assertEqual(fields.get('rating'), 'Fiction M')
+        # fanfiction.net's "Fiction M" is stored as FanFicFare stores it.
+        self.assertEqual(fields.get('rating'), 'M')
         self.assertEqual(fields.get('language'), 'English')
         self.assertEqual(fields.get('genre'), ['TestGenre06'])
         self.assertEqual(fields.get('characters'), ['TestCharacter15', 'TestCharacter16'])

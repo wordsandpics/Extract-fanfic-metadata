@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+- Store fanfiction.net ratings as FanFicFare does ("M" rather than "Fiction M"),
+  whichever tool saved the file.
+
 ## [1.2.2] - 2026-11-06
 
 - Recover the fandom from FanFicFare title pages of AO3 and fanfiction.net EPUBs,
