@@ -6,7 +6,7 @@ series URL is not a storyUrl and its first story is not the whole book.
 import re
 from urllib.parse import urlsplit
 
-from .anthology import extract_fic_records, is_anthology, _parse_date
+from .anthology import extract_fic_records, format_summary, is_anthology, _parse_date
 from .extractors._epubxml import (
     find_all, local_name, parse_opf, parse_xhtml, spine_item_paths, text_content,
 )
@@ -67,6 +67,8 @@ def extract_collection(zf, opf=None):
                     if all(v is not None for v in values):
                         fields[total] = sum(values)
             fields.update(_combined_story_fields(records))
+            # Users' Calibre templates parse this text; keep format_summary() stable.
+            fields['collectionStoryReport'] = format_summary(records)
             sources.update({k: 'collection_stories' for k in fields if k not in sources})
         series_status = _series_status(opf)
         if series_status:

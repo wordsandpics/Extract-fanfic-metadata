@@ -107,7 +107,8 @@ class BookResult:
             lines.extend(['', '=== Recovered Anthology Facts ==='])
             lines.extend(_format_field_dict(
                 {k: v for k, v in self.fields.items()
-                 if k not in ('collectionRecords', 'collectionType')}, self.sources))
+                 if k not in ('collectionRecords', 'collectionType', 'collectionStoryReport')},
+                self.sources))
             records = self.fields.get('collectionRecords', [])
             if records:
                 lines.extend(['', '=== Individual Stories ===', format_summary(records)])
@@ -117,8 +118,8 @@ class BookResult:
         if not self.has_writes:
             lines.extend(['', 'No changes will be written with the current settings.'])
             if collection:
-                lines.append('Enable standard/custom-column updates, or use the anthology report '
-                             'action for embedded story details.')
+                lines.append('Enable standard/custom-column updates, or map the Anthology Story Report '
+                             'field for embedded story details.')
 
         return lines
 

@@ -183,5 +183,6 @@ These fields only apply to anthology EPUBs, including EPUBs of a whole series or
 | Anthology Completed Story Count | Stories known to be complete. Blank if no story's status is known. | A number |
 | Anthology Unknown Status Count | Stories with no recognizable completion status. | A number |
 | Anthology Total Chapters | Total chapters across all stories. Blank if any story's count is unknown. | A number |
+| Anthology Story Report | A text report of each story: "N/M fics complete.", then each story's status, chapters, words, author, link and dates. | Text (Long text only) |
 | Series Begun (from saved page) | When the series was begun, from a saved series page. | A date |
 | Series Updated (from saved page) | When the series was last updated, from a saved series page. | A date |

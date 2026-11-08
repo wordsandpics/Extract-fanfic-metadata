@@ -1,7 +1,8 @@
 """
-Embedded-story reading and the separate "Extract story status from anthology"
-action. collections.py also reuses this reader for the main extraction preview
-and reliable totals. Outer bundle status can differ from individual story
+Embedded-story reading for anthologies. collections.py uses it for the main
+extraction: the preview, reliable totals, anthology-wide values and the
+Anthology Story Report field (format_summary, whose text users' Calibre
+templates parse -- keep it stable). Outer bundle status can differ from individual story
 status; this module recovers each story's own metadata.
 
 Verified directly against a real epubmerge-produced anthology (7 fics,
@@ -303,42 +304,6 @@ def format_summary(records):
             lines.append('   ' + '; '.join(dates))
 
     return '\n'.join(lines)
-
-
-class AnthologyResult:
-    """Duck-typed to match what dialogs.py::PreviewDialog expects from a
-    result object (.book_id, .title, .error, .summary_lines()) so that
-    dialog can be reused unmodified for this second, independent action --
-    it never assumes its results are BookResult instances."""
-
-    def __init__(self, book_id, title, records=None, summary='', existing_column_value=None, error=None,
-                 overwrite=False):
-        self.book_id = book_id
-        self.title = title
-        self.records = records or []
-        self.summary = summary
-        self.existing_column_value = existing_column_value
-        self.error = error
-        self.overwrite = overwrite
-        self.write_errors = []
-        self.written_fields = []
-
-    @property
-    def has_writes(self):
-        return bool(self.summary and not self.error and
-                    (self.overwrite or not self.existing_column_value))
-
-    def summary_lines(self):
-        if self.error:
-            return ['Error: %s' % self.error]
-        lines = []
-        if self.existing_column_value:
-            lines.append('(existing column value will be %s)' %
-                         ('replaced' if self.overwrite else 'kept; report skipped'))
-            lines.append('')
-        lines.extend(self.summary.split('\n'))
-        lines.extend(story_detail_lines(self.records))
-        return lines
 
 
 def story_detail_lines(records):

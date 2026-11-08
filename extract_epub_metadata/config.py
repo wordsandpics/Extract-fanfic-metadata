@@ -1,10 +1,11 @@
 from calibre.utils.config import JSONConfig
 from qt.core import (
     QCheckBox, QComboBox, QGroupBox, QHBoxLayout, QLabel, QPushButton,
-    QTabWidget, QVBoxLayout, QWidget,
+    QVBoxLayout, QWidget,
 )
 
 from calibre_plugins.extract_epub_metadata.dialogs import ColumnMappingDialog
+from calibre_plugins.extract_epub_metadata.prefs_migration import migrate_anthology_report
 
 # Extra vertical breathing room between the three mode group boxes, so
 # they read as clearly separate choices rather than one dense block.
@@ -41,13 +42,8 @@ KEY_ADD_IDENTIFIER = 'addMissingIdentifier'
 KEY_PREVIEW = 'preview'
 KEY_SHOW_CONFIRMATION = 'showConfirmation'
 
-# "Extract story status from anthology" -- a separate action/tab, own
-# independent prefs (including its own destination column, which can and
-# probably should differ from Mode 1's Saved Metadata column).
-KEY_ANTHOLOGY_DEST_COLUMN = 'anthologyDestColumn'
-KEY_ANTHOLOGY_OVERWRITE = 'anthologyOverwrite'
-KEY_ANTHOLOGY_PREVIEW = 'anthologyPreview'
-KEY_ANTHOLOGY_SHOW_CONFIRMATION = 'anthologyShowConfirmation'
+# The former "Extract story status from anthology" action's settings are
+# carried into the column mapping once (prefs_migration.py).
 
 DEFAULT_STORE_VALUES = {
     # Mode 1 (Saved Metadata column, for FanFicFare's own "Update Calibre
@@ -71,11 +67,6 @@ DEFAULT_STORE_VALUES = {
     KEY_ADD_IDENTIFIER: True,
     KEY_PREVIEW: True,
     KEY_SHOW_CONFIRMATION: True,
-
-    KEY_ANTHOLOGY_DEST_COLUMN: '',
-    KEY_ANTHOLOGY_OVERWRITE: False,
-    KEY_ANTHOLOGY_PREVIEW: True,
-    KEY_ANTHOLOGY_SHOW_CONFIRMATION: True,
 }
 
 # Always prefix with 'plugins/' so this doesn't collide with a core calibre
@@ -96,17 +87,18 @@ def get_prefs():
     Always read prefs through this function, never `plugin_prefs[STORE_NAME]`
     directly.
     """
+    stored, changed = migrate_anthology_report(dict(plugin_prefs[STORE_NAME]))
+    if changed:
+        plugin_prefs[STORE_NAME] = stored
     prefs = dict(DEFAULT_STORE_VALUES)
-    prefs.update(plugin_prefs[STORE_NAME])
+    prefs.update(stored)
     return prefs
 
 
 class ConfigWidget(QWidget):
-    """Two tabs, kept deliberately separate (not just spaced/divided)
-    since they're two unrelated actions sharing one settings dialog:
-    "Extraction" (the main Extract Metadata action's 3 modes, unchanged)
-    and "Anthology Status" (the "Extract story status from anthology"
-    action, added later -- explicitly not crammed into the first tab)."""
+    """The Extract Metadata settings: the three write modes and shared
+    options. (Until 1.3.0 a second tab held the separate anthology report
+    action's settings; that report is now a column-mapping field.)"""
 
     def __init__(self, plugin_action):
         QWidget.__init__(self)
@@ -120,13 +112,8 @@ class ConfigWidget(QWidget):
         outer = QVBoxLayout(self)
         self.setLayout(outer)
 
-        tabs = QTabWidget(self)
-        tabs.addTab(self._build_extraction_tab(prefs, custom_columns), 'Extraction')
-        tabs.addTab(self._build_anthology_tab(prefs, custom_columns), 'Anthology Status')
-        outer.addWidget(tabs)
-        self.dest_column.currentIndexChanged.connect(self._refresh_report_columns)
+        outer.addWidget(self._build_extraction_tab(prefs, custom_columns))
         self._refresh_saved_columns()
-        self._refresh_report_columns()
 
     def _refresh_saved_columns(self):
         # Prevent new conflicts even in Calibre versions whose configuration
@@ -144,18 +131,6 @@ class ConfigWidget(QWidget):
         self.saved_column_note.setText(
             'The previous Saved Metadata column is already mapped. Choose another column '
             'or remove that custom mapping.' if current and idx < 0 else '')
-        self._refresh_report_columns()
-
-    def _refresh_report_columns(self, *_):
-        current = self.anthology_dest_column.currentData()
-        reserved = self.dest_column.currentData()
-        self.anthology_dest_column.clear()
-        self.anthology_dest_column.addItem('', '')
-        for key, column in sorted(self.custom_columns.items()):
-            if column['datatype'] == 'comments' and key != reserved:
-                self.anthology_dest_column.addItem(column['name'], key)
-        idx = self.anthology_dest_column.findData(current)
-        self.anthology_dest_column.setCurrentIndex(max(0, idx))
 
     def validate(self):
         reserved = self.dest_column.currentData()
@@ -207,67 +182,6 @@ class ConfigWidget(QWidget):
             "straight to Calibre.")
         self.show_confirmation.setChecked(prefs[KEY_SHOW_CONFIRMATION])
         layout.addWidget(self.show_confirmation)
-
-        layout.addStretch(1)
-        return tab
-
-    def _build_anthology_tab(self, prefs, custom_columns):
-        tab = QWidget(self)
-        layout = QVBoxLayout(tab)
-
-        intro = QLabel(
-            'Settings for the "Extract story status from anthology" action '
-            '(toolbar menu): Recovers the completion status for each '
-            'individual fic in a FanFicFare-bundled anthology EPUB, since '
-            "the anthology's own aggregate status is manually set and does "
-            "not reflect individual stories' status.", tab)
-        intro.setWordWrap(True)
-        layout.addWidget(intro)
-        layout.addSpacing(GROUP_SPACING)
-
-        col_row = QHBoxLayout()
-        label = QLabel('Destination Column:')
-        tooltip = (
-            'The custom column to write the per-fic status breakdown into. '
-            'Must be a Long Text column different from the Saved Metadata '
-            'column. The Saved Metadata column is reserved for raw single-story '
-            'metadata.\n(Long Text columns only.)'
-        )
-        label.setToolTip(tooltip)
-        col_row.addWidget(label)
-
-        self.anthology_dest_column = QComboBox(tab)
-        self.anthology_dest_column.setToolTip(tooltip)
-        self.anthology_dest_column.addItem('', '')
-        for key, column in sorted(custom_columns.items()):
-            if column['datatype'] == 'comments':
-                self.anthology_dest_column.addItem(column['name'], key)
-        idx = self.anthology_dest_column.findData(prefs[KEY_ANTHOLOGY_DEST_COLUMN])
-        self.anthology_dest_column.setCurrentIndex(idx if idx >= 0 else 0)
-        col_row.addWidget(self.anthology_dest_column)
-        layout.addLayout(col_row)
-
-        self.anthology_overwrite = QCheckBox('Overwrite existing column value', tab)
-        self.anthology_overwrite.setToolTip(
-            "If unchecked, books whose destination column already has a "
-            "value are skipped rather than overwritten.")
-        self.anthology_overwrite.setChecked(prefs[KEY_ANTHOLOGY_OVERWRITE])
-        layout.addWidget(self.anthology_overwrite)
-
-        self.anthology_preview = QCheckBox('Preview before writing', tab)
-        self.anthology_preview.setToolTip(
-            "Show the per-fic breakdown for review before writing anything. "
-            "Non-anthology books show up unchecked with an explanatory note.")
-        self.anthology_preview.setChecked(prefs[KEY_ANTHOLOGY_PREVIEW])
-        layout.addWidget(self.anthology_preview)
-
-        self.anthology_show_confirmation = QCheckBox('Show confirmation after writing', tab)
-        self.anthology_show_confirmation.setToolTip(
-            "Show a small popup summarizing how many books were updated "
-            "after writing finishes. Uncheck to skip it and return "
-            "straight to Calibre.")
-        self.anthology_show_confirmation.setChecked(prefs[KEY_ANTHOLOGY_SHOW_CONFIRMATION])
-        layout.addWidget(self.anthology_show_confirmation)
 
         layout.addStretch(1)
         return tab
@@ -416,9 +330,4 @@ class ConfigWidget(QWidget):
         prefs[KEY_ADD_IDENTIFIER] = self.add_identifier.isChecked()
         prefs[KEY_PREVIEW] = self.preview.isChecked()
         prefs[KEY_SHOW_CONFIRMATION] = self.show_confirmation.isChecked()
-        prefs[KEY_ANTHOLOGY_DEST_COLUMN] = self.anthology_dest_column.itemData(
-            self.anthology_dest_column.currentIndex())
-        prefs[KEY_ANTHOLOGY_OVERWRITE] = self.anthology_overwrite.isChecked()
-        prefs[KEY_ANTHOLOGY_PREVIEW] = self.anthology_preview.isChecked()
-        prefs[KEY_ANTHOLOGY_SHOW_CONFIRMATION] = self.anthology_show_confirmation.isChecked()
         plugin_prefs[STORE_NAME] = prefs

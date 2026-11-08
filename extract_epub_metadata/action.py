@@ -1,20 +1,15 @@
-from zipfile import ZipFile
 
 from calibre.gui2 import error_dialog, info_dialog
 from calibre.gui2.actions import InterfaceAction
 from qt.core import QMenu
 
-from calibre_plugins.extract_epub_metadata.anthology import (
-    AnthologyResult, extract_fic_records, format_summary, is_anthology,
-)
 from calibre_plugins.extract_epub_metadata.calibre_fields import (
     apply_custom_column_mapping, apply_standard_fields,
     compute_custom_column_values, compute_standard_fields, plan_standard_fields, write_field,
 )
 from calibre_plugins.extract_epub_metadata.common_utils import plugin_icon
 from calibre_plugins.extract_epub_metadata.config import (
-    KEY_ADD_IDENTIFIER, KEY_ANTHOLOGY_DEST_COLUMN, KEY_ANTHOLOGY_FIELDS, KEY_ANTHOLOGY_PUBDATE, KEY_ANTHOLOGY_OVERWRITE,
-    KEY_ANTHOLOGY_PREVIEW, KEY_ANTHOLOGY_SHOW_CONFIRMATION, KEY_COLUMN_MAPPING,
+    KEY_ADD_IDENTIFIER, KEY_ANTHOLOGY_FIELDS, KEY_ANTHOLOGY_PUBDATE, KEY_COLUMN_MAPPING,
     KEY_DEST_COLUMN, KEY_MODE1_ENABLED, KEY_MODE2_ENABLED, KEY_MODE2_OVERWRITE,
     KEY_MODE3_ENABLED, KEY_OVERWRITE, KEY_PREVIEW, KEY_SHOW_CONFIRMATION, get_prefs,
 )
@@ -40,7 +35,6 @@ class ExtractEpubMetadataAction(InterfaceAction):
         self.qaction.triggered.connect(self.run)
         self.menu = QMenu(self.gui)
         self.menu.addAction('Extract Metadata', self.run)
-        self.menu.addAction('Extract story status from anthology', self.run_anthology_report)
         self.menu.addAction('Configure…', self.show_configuration)
         self.qaction.setMenu(self.menu)
 
@@ -217,76 +211,9 @@ class ExtractEpubMetadataAction(InterfaceAction):
             for result in results:
                 if getattr(result, 'fields', {}).get('collectionType'):
                     notes.append('Anthologies do not receive FanFicFare Saved Metadata. '
-                                 'Use standard/custom-column updates or the anthology report.')
+                                 'Use standard/custom-column updates instead.')
                 notes.extend(getattr(result, 'notes', []))
             if not written and notes:
                 summary += '\n\n' + '\n'.join(dict.fromkeys(notes))
             info_dialog(self.gui, 'Extract Fanfic Metadata', summary,
                         det_msg='\n'.join(dict.fromkeys(notes)), show=True)
-
-    def run_anthology_report(self):
-        prefs = get_prefs()
-        dest_column = prefs[KEY_ANTHOLOGY_DEST_COLUMN]
-        db = self.gui.current_db.new_api
-        custom_columns = self.gui.library_view.model().custom_columns
-        if dest_column and dest_column == prefs[KEY_DEST_COLUMN]:
-            return error_dialog(self.gui, 'Conflicting column settings',
-                                'Choose an anthology report column different from the Saved Metadata column.',
-                                show=True)
-        if (not dest_column or dest_column not in custom_columns or
-                custom_columns[dest_column]['datatype'] != 'comments'):
-            return error_dialog(self.gui, 'No destination column configured',
-                                'Choose a Long Text column on the Anthology Status tab in settings.', show=True)
-        book_ids = self.gui.library_view.get_selected_ids()
-        if not book_ids:
-            return error_dialog(self.gui, 'No books selected', 'Select one or more books first.', show=True)
-        results = [self._process_anthology_book(db, book_id, dest_column) for book_id in book_ids]
-        if prefs[KEY_ANTHOLOGY_PREVIEW]:
-            dialog = PreviewDialog(self.gui, results)
-            if dialog.exec() != PreviewDialog.DialogCode.Accepted:
-                return
-            selected = dialog.selected_results()
-        else:
-            selected = [r for r in results if not r.error and r.has_writes]
-        written = self._write_anthology_results(db, dest_column, selected, prefs[KEY_ANTHOLOGY_OVERWRITE])
-        self._refresh_library(selected)
-        self._show_outcome(results, written, len(book_ids), prefs[KEY_ANTHOLOGY_SHOW_CONFIRMATION],
-                           include_extraction_errors=not prefs[KEY_ANTHOLOGY_PREVIEW])
-
-    def _process_anthology_book(self, db, book_id, dest_column):
-        title = 'Book %s' % book_id
-        try:
-            title = db.get_metadata(book_id).title or title
-            if not db.has_format(book_id, 'EPUB'):
-                raise ValueError('No EPUB format available for this book.')
-            with db.format(book_id, 'EPUB', as_file=True) as stream, ZipFile(stream) as zf:
-                if not is_anthology(zf):
-                    raise ValueError('No embedded epubmerge stories found. Use Extract Metadata '
-                                     'for series-level facts in a WebToEpub series EPUB.')
-                records = extract_fic_records(zf)
-            if not records:
-                raise ValueError('No individual story records recovered from this anthology.')
-            return AnthologyResult(
-                book_id, title, records=records, summary=format_summary(records),
-                existing_column_value=db.field_for(dest_column, book_id, default_value='') or None,
-                overwrite=get_prefs()[KEY_ANTHOLOGY_OVERWRITE],
-            )
-        except Exception as e:
-            return AnthologyResult(book_id, title, error='Failed to process anthology: %s' % e)
-
-    def _write_anthology_results(self, db, dest_column, results, overwrite):
-        written = 0
-        for result in results:
-            if result.error:
-                continue
-            result.written_fields, result.write_errors = [], []
-            try:
-                if dest_column == get_prefs()[KEY_DEST_COLUMN]:
-                    raise ValueError('Saved Metadata column is reserved for raw metadata.')
-                if overwrite or not db.field_for(dest_column, result.book_id):
-                    write_field(db, result.book_id, dest_column, result.summary, result.written_fields)
-            except Exception as e:
-                result.write_errors.append('Anthology report: %s' % e)
-            if result.written_fields:
-                written += 1
-        return written

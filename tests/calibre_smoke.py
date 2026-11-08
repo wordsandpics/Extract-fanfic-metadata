@@ -34,7 +34,7 @@ plugin = find_plugin('Extract Fanfic Metadata')
 assert plugin is not None, 'Install the plugin in the scratch configuration first.'
 with plugin:
     from calibre_plugins.extract_epub_metadata.action import ExtractEpubMetadataAction
-    from calibre_plugins.extract_epub_metadata.config import DEFAULT_STORE_VALUES, STORE_NAME, plugin_prefs, ConfigWidget
+    from calibre_plugins.extract_epub_metadata.config import DEFAULT_STORE_VALUES, STORE_NAME, plugin_prefs, ConfigWidget, get_prefs
     from calibre_plugins.extract_epub_metadata.dialogs import PreviewDialog, _format_field_dict
     with tempfile.TemporaryDirectory(prefix='extract-metadata-library-') as library_path:
         db = open_library(library_path)
@@ -54,7 +54,7 @@ with plugin:
             with path.open('rb') as f:
                 db.add_format(book_id, 'EPUB', f, index_is_id=True)
             ids.append(book_id)
-        prefs = dict(DEFAULT_STORE_VALUES, destColumn='#saved', mode2Enabled=True, mode3Enabled=True, anthologyDestColumn='#report', columnMapping={'#words': 'numWords', '#count': 'collectionStoryCount', '#unknown': 'collectionUnknownCount'})
+        prefs = dict(DEFAULT_STORE_VALUES, destColumn='#saved', mode2Enabled=True, mode3Enabled=True, columnMapping={'#report': 'collectionStoryReport', '#words': 'numWords', '#count': 'collectionStoryCount', '#unknown': 'collectionUnknownCount'})
         plugin_prefs[STORE_NAME] = prefs
         gui = QWidget()
         gui.current_db = db
@@ -83,10 +83,13 @@ with plugin:
         good = next((r for r in collections if r.fields['collectionStoryCount'] == 5))
         assert api.field_for('#words', good.book_id) == 93149
         assert api.field_for('#unknown', good.book_id) == 0
-        report = action._process_anthology_book(api, good.book_id, '#report')
-        assert report.has_writes and 'TestWriter15' in report.summary
-        assert action._write_anthology_results(api, '#report', [report], False) == 1
-        assert action._write_anthology_results(api, '#report', [report], False) == 0
+        report = api.field_for('#report', good.book_id)
+        assert report and 'TestWriter15' in report, report
+        import re as _re
+        assert _re.match(r'^\s*[0-9]+/[0-9]+\s+fics complete\.', report), report
+        assert report == good.fields['collectionStoryReport']
+        single = next((r for r in results if not r.fields.get('collectionType')))
+        assert not api.field_for('#report', single.book_id)
         expected = {'ao3-series-collection.epub': {'numWords': 11822, 'collectionStoryCount': 2}, 'ao3-information-thin-space.epub': {'numWords': 111536}, 'anthology-multiple-authors.epub': {'numWords': 93149, 'collectionChapterCount': 66}, 'ao3-split-coauthors.epub': {'author': ['TestWriter02', 'TestWriter03'], 'numWords': 17674}, 'ao3-anonymous-singular-tags.epub': {'author': ['Anonymous'], 'authorHTML': 'Anonymous'}}
         for path, r in zip(paths, results):
             for key, value in expected.get(path.name, {}).items():
@@ -99,7 +102,6 @@ with plugin:
         assert _format_field_dict({'comments': '<p>A &amp; B</p><p>Next</p>'}) == ['  comments: A & B\n\nNext']
         config = ConfigWidget(action)
         assert config.validate() and config.validate_before_accept
-        assert config.anthology_dest_column.findData('#saved') == -1
         config.column_mapping['#saved'] = 'description'
         config._refresh_saved_columns()
         assert config.dest_column.findData('#saved') == -1
@@ -108,7 +110,6 @@ with plugin:
         del config.column_mapping['#saved']
         config._refresh_saved_columns()
         config.dest_column.setCurrentIndex(config.dest_column.findData('#saved'))
-        config._refresh_report_columns()
         preview = PreviewDialog(gui, results)
         screenshots = os.environ.get('EXTRACT_METADATA_SCREENSHOTS')
         if screenshots:
@@ -514,7 +515,20 @@ with plugin:
         print('PASS: 4 FicLab previews/writes/FFF round trips, summary word counts, aware dates and uncategorized tags.')
         print('PASS: 5 TXT variant previews/writes, 2 FFF round trips including SquidgeWorld, partial-recovery notes, preserved omitted columns.')
         print('PASS: 5 TXT previews and Calibre writes, 4 TXT FFF round trips, missing URLs, EPUB priority, unrecognized files.')
+        # Settings from before 1.3.0: the separate report action's column is
+        # carried into the column mapping once, and the old keys are dropped.
+        old = dict(DEFAULT_STORE_VALUES, destColumn='#saved', mode3Enabled=True,
+                   columnMapping={'#words': 'numWords'}, anthologyDestColumn='#report',
+                   anthologyOverwrite=True, anthologyPreview=True, anthologyShowConfirmation=True)
+        old.pop('anthologyReportMigrated', None)
+        plugin_prefs[STORE_NAME] = old
+        carried = get_prefs()
+        assert carried['columnMapping'] == {'#words': 'numWords', '#report': 'collectionStoryReport'}, carried
+        assert 'anthologyDestColumn' not in plugin_prefs[STORE_NAME] and plugin_prefs[STORE_NAME]['anthologyReportMigrated']
+        carried['columnMapping'] = {'#words': 'numWords'}
+        plugin_prefs[STORE_NAME] = carried
+        assert get_prefs()['columnMapping'] == {'#words': 'numWords'}, 'unmapping must stick'
         db.close()
         print('PASS: %d fresh imports, %d collections, %d FFF multi-key round trips, %d run() matrix cases.' % (len(paths), len(collections), round_trips, cases))
-        print('PASS: preview unchecking, independent overwrite flags, placeholder writes, anthology report, partial failures.')
+        print('PASS: preview unchecking, independent overwrite flags, placeholder writes, anthology story report field, settings carry-over, partial failures.')
         print('Skipped unsupported FFF imports (%d): %s' % (len(skipped), '; '.join(skipped)))

@@ -196,6 +196,7 @@ KEY_KINDS = {
     'collectionUnknownCount': 'int',
     'collectionChapterCount': 'int', 'collectionDateBegun': 'datetime',
     'collectionDateUpdated': 'datetime',
+    'collectionStoryReport': 'text',
 }
 
 # Synthetic boolean key, not in `fields` directly -- derived from `status`
@@ -301,6 +302,7 @@ FIELD_LABELS = {
     'collectionChapterCount': 'Anthology Total Chapters',
     'collectionDateBegun': 'Series Begun (from saved page)',
     'collectionDateUpdated': 'Series Updated (from saved page)',
+    'collectionStoryReport': 'Anthology Story Report',
 }
 
 # Explains what each field actually means/where it comes from -- shown as
@@ -356,6 +358,9 @@ FIELD_HELP = {
     'collectionUnknownCount': 'Stories with no recognizable completion status.',
     'numWords': "The story's word count. For anthologies, a reliable total across all stories, or a total stated on a saved series page.",
     'collectionChapterCount': "Total chapters across all stories. Blank if any story's count is unknown.",
+    'collectionStoryReport': ('A text report of each story in the anthology: "N/M fics complete.", '
+                              'then each story\'s status, chapters, words, author, link and dates. '
+                              'Long text columns only.'),
 }
 
 
@@ -397,7 +402,8 @@ def permitted_keys_for_datatype(datatype, is_multiple=False):
     """
     if datatype == 'bool':
         return [STATUS_COMPLETE_KEY]
-    return [k for k, kind in KEY_KINDS.items() if _kind_compatible(kind, datatype, is_multiple)]
+    return [k for k, kind in KEY_KINDS.items() if _kind_compatible(kind, datatype, is_multiple)
+            and (k != 'collectionStoryReport' or datatype == 'comments')]
 
 
 def compatible_columns_for_key(metadata_key, custom_columns):
@@ -409,6 +415,10 @@ def compatible_columns_for_key(metadata_key, custom_columns):
     if metadata_key == STATUS_COMPLETE_KEY:
         return [key for key, column in custom_columns.items()
                 if column['datatype'] == 'bool']
+    if metadata_key == 'collectionStoryReport':
+        # A multi-line report: Long text columns only, as before.
+        return [key for key, column in custom_columns.items()
+                if column['datatype'] == 'comments']
     kind = KEY_KINDS.get(metadata_key)
     if kind is None:
         return []
