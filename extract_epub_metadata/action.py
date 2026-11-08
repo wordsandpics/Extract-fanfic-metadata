@@ -13,7 +13,7 @@ from calibre_plugins.extract_epub_metadata.calibre_fields import (
 )
 from calibre_plugins.extract_epub_metadata.common_utils import plugin_icon
 from calibre_plugins.extract_epub_metadata.config import (
-    KEY_ADD_IDENTIFIER, KEY_ANTHOLOGY_DEST_COLUMN, KEY_ANTHOLOGY_OVERWRITE,
+    KEY_ADD_IDENTIFIER, KEY_ANTHOLOGY_DEST_COLUMN, KEY_ANTHOLOGY_FIELDS, KEY_ANTHOLOGY_PUBDATE, KEY_ANTHOLOGY_OVERWRITE,
     KEY_ANTHOLOGY_PREVIEW, KEY_ANTHOLOGY_SHOW_CONFIRMATION, KEY_COLUMN_MAPPING,
     KEY_DEST_COLUMN, KEY_MODE1_ENABLED, KEY_MODE2_ENABLED, KEY_MODE2_OVERWRITE,
     KEY_MODE3_ENABLED, KEY_OVERWRITE, KEY_PREVIEW, KEY_SHOW_CONFIRMATION, get_prefs,
@@ -130,9 +130,11 @@ class ExtractEpubMetadataAction(InterfaceAction):
             if save_enabled:
                 existing_value = db.field_for(dest_column, book_id, default_value='') or None
             pending, skipped = plan_standard_fields(
-                db, book_id, compute_standard_fields(fields), prefs[KEY_MODE2_OVERWRITE]
+                db, book_id, compute_standard_fields(fields, prefs[KEY_ANTHOLOGY_PUBDATE]),
+                prefs[KEY_MODE2_OVERWRITE]
             ) if mode2_on else ({}, {})
-            custom_values = (compute_custom_column_values(fields, column_mapping, custom_columns)
+            custom_values = (compute_custom_column_values(fields, column_mapping, custom_columns,
+                                                          prefs[KEY_ANTHOLOGY_FIELDS])
                              if mode3_on else {})
             # A Wayback uri must not block adding the original work URL as url.
             uri = (identifiers.get('uri') or '').replace('|', ':')

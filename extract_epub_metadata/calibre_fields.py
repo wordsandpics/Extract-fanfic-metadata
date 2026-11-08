@@ -42,7 +42,7 @@ TAG_SOURCE_KEYS = (
 )
 
 
-def compute_standard_fields(fields):
+def compute_standard_fields(fields, anthology_pubdate=False):
     """
     fields: the dict mapping.py::extract_fields() produces.
     Returns a sparse dict of whatever standard Calibre fields can be
@@ -92,6 +92,10 @@ def compute_standard_fields(fields):
 
     if fields.get('datePublished'):
         computed['pubdate'] = fields['datePublished']
+    elif (anthology_pubdate and fields.get('collectionType')
+          and fields.get('collectionEarliestPublished')):
+        # Opt-in, like FanFicFare's own anthologies: the earliest story's date.
+        computed['pubdate'] = fields['collectionEarliestPublished']
 
     if fields.get('language'):
         computed['language'] = fields['language']
@@ -202,6 +206,46 @@ STATUS_COMPLETE_KEY = 'status-C (Completed = checked)'
 # synthetic boolean key -- a stable public list so callers (dialogs.py)
 # don't need to reach into KEY_KINDS' internals directly.
 ALL_METADATA_KEYS = tuple(KEY_KINDS.keys()) + (STATUS_COMPLETE_KEY,)
+
+# "Also for anthologies": a story field whose column can, when ticked, take
+# the matching anthology-wide value instead. Values follow FanFicFare's own
+# anthology rules (collections.py). Status is the series status the file
+# records, never worked out from the stories.
+ANTHOLOGY_RATING_HIGHEST = 'highest'
+ANTHOLOGY_RATING_ALL = 'all'
+ANTHOLOGY_PAIRS = {
+    'status': 'collectionSeriesStatus',
+    STATUS_COMPLETE_KEY: 'collectionSeriesStatus',
+    'datePublished': 'collectionEarliestPublished',
+    'dateUpdated': 'collectionLatestUpdated',
+    'numChapters': 'collectionChapterCount',
+    'fandoms': 'collectionFandoms',
+    'characters': 'collectionCharacters',
+    'ships': 'collectionShips',
+    'rating': {ANTHOLOGY_RATING_HIGHEST: 'collectionHighestRating',
+               ANTHOLOGY_RATING_ALL: 'collectionRatings'},
+}
+
+
+def _fields_for_column(fields, metadata_key, anthology_choices):
+    """The fields one mapped column reads: for an anthology whose row is
+    ticked, the story field is replaced by the anthology value (or left
+    empty when the file has none)."""
+    choice = (anthology_choices or {}).get(metadata_key)
+    if not choice or not fields.get('collectionType') or metadata_key not in ANTHOLOGY_PAIRS:
+        return fields
+    source = ANTHOLOGY_PAIRS[metadata_key]
+    if isinstance(source, dict):
+        source = source.get(choice)
+        if not source:
+            return fields
+    target = 'status' if metadata_key == STATUS_COMPLETE_KEY else metadata_key
+    view = dict(fields)
+    if fields.get(source) not in (None, '', []):
+        view[target] = fields[source]
+    else:
+        view.pop(target, None)
+    return view
 
 # Calibre custom-column datatypes this plugin knows how to write to.
 SUPPORTED_DATATYPES = (
@@ -427,7 +471,7 @@ def _coerce_for_column(fields, metadata_key, column):
     return None, False
 
 
-def compute_custom_column_values(fields, mapping, column_metadata):
+def compute_custom_column_values(fields, mapping, column_metadata, anthology_choices=None):
     """
     mapping: {column_lookup_key: metadata_key} as configured in
         plugin_prefs (metadata_key may be STATUS_COMPLETE_KEY).
@@ -441,13 +485,16 @@ def compute_custom_column_values(fields, mapping, column_metadata):
     normal state (unlike Mode 1's required destination column). Used both
     to preview what Mode 3 would write and, via apply_custom_column_mapping,
     to actually write it.
+    anthology_choices: {metadata_key: True | 'highest' | 'all'} for rows
+        ticked "Also for anthologies" (see ANTHOLOGY_PAIRS).
     """
     computed = {}
     for column_key, metadata_key in mapping.items():
         column = column_metadata.get(column_key)
         if not column:
             continue
-        value, ok = _coerce_for_column(fields, metadata_key, column)
+        source_fields = _fields_for_column(fields, metadata_key, anthology_choices)
+        value, ok = _coerce_for_column(source_fields, metadata_key, column)
         if ok:
             computed[column_key] = value
     return computed

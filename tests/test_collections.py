@@ -172,5 +172,89 @@ class AnthologyPreviewFactsTest(unittest.TestCase):
         self.assertNotIn('pubdate', computed)
 
 
+
+class AlsoForAnthologiesTest(unittest.TestCase):
+    """Step 3: ticked column-mapping rows take the anthology-wide value."""
+
+    @classmethod
+    def setUpClass(cls):
+        import datetime
+        cls.d = datetime.datetime
+        cls.fields = {
+            'collectionType': 'epubmerge anthology', 'numWords': 500,
+            'collectionSeriesStatus': 'In-Progress', 'collectionChapterCount': 12,
+            'collectionEarliestPublished': cls.d(2011, 1, 1), 'collectionLatestUpdated': cls.d(2015, 1, 1),
+            'collectionFandoms': ['A', 'B'], 'collectionCharacters': ['X'],
+            'collectionRatings': ['Mature', 'Explicit'], 'collectionHighestRating': 'Explicit',
+        }
+        cls.columns = {
+            '#status': {'datatype': 'text'}, '#done': {'datatype': 'bool'},
+            '#pub': {'datatype': 'datetime'}, '#upd': {'datatype': 'datetime'},
+            '#ch': {'datatype': 'int'}, '#fandom': {'datatype': 'text', 'is_multiple': True},
+            '#chars': {'datatype': 'text', 'is_multiple': True}, '#rating': {'datatype': 'text'},
+            '#words': {'datatype': 'int'},
+        }
+        cls.mapping = {'#status': 'status', '#done': 'status-C (Completed = checked)',
+                       '#pub': 'datePublished', '#upd': 'dateUpdated', '#ch': 'numChapters',
+                       '#fandom': 'fandoms', '#chars': 'characters', '#rating': 'rating',
+                       '#words': 'numWords'}
+
+    def test_unticked_rows_stay_empty_for_anthologies(self):
+        values = compute_custom_column_values(self.fields, self.mapping, self.columns)
+        self.assertEqual(values, {'#words': 500})
+
+    def test_ticked_rows_take_anthology_values(self):
+        choices = {k: True for k in self.mapping.values()}
+        choices['rating'] = 'highest'
+        values = compute_custom_column_values(self.fields, self.mapping, self.columns, choices)
+        self.assertEqual(values, {
+            '#status': 'In-Progress', '#done': False, '#pub': self.d(2011, 1, 1),
+            '#upd': self.d(2015, 1, 1), '#ch': 12, '#fandom': ['A', 'B'], '#chars': ['X'],
+            '#rating': 'Explicit', '#words': 500})
+
+    def test_rating_all_and_enumeration_columns(self):
+        values = compute_custom_column_values(self.fields, {'#rating': 'rating'}, self.columns,
+                                              {'rating': 'all'})
+        self.assertEqual(values, {'#rating': 'Mature, Explicit'})
+        enum = {'#rating': {'datatype': 'enumeration',
+                            'display': {'enum_values': ['Mature', 'Explicit']}}}
+        values = compute_custom_column_values(self.fields, {'#rating': 'rating'}, enum, {'rating': 'all'})
+        self.assertEqual(values, {})
+        values = compute_custom_column_values(self.fields, {'#rating': 'rating'}, enum, {'rating': 'highest'})
+        self.assertEqual(values, {'#rating': 'Explicit'})
+
+    def test_status_stays_empty_without_series_status(self):
+        fields = dict(self.fields)
+        del fields['collectionSeriesStatus']
+        values = compute_custom_column_values(
+            fields, {'#status': 'status', '#done': 'status-C (Completed = checked)'}, self.columns,
+            {'status': True, 'status-C (Completed = checked)': True})
+        self.assertEqual(values, {})
+
+    def test_single_stories_ignore_anthology_ticks(self):
+        story = {'status': 'Completed', 'numChapters': 3, 'collectionChapterCount': 99}
+        values = compute_custom_column_values(story, {'#status': 'status', '#ch': 'numChapters'},
+                                              self.columns, {'status': True, 'numChapters': True})
+        self.assertEqual(values, {'#status': 'Completed', '#ch': 3})
+
+    def test_published_date_is_opt_in(self):
+        self.assertNotIn('pubdate', compute_standard_fields(self.fields))
+        self.assertEqual(compute_standard_fields(self.fields, anthology_pubdate=True)['pubdate'],
+                         self.d(2011, 1, 1))
+
+    def test_highest_rating_rules(self):
+        from extract_epub_metadata.collections import _combined_story_fields
+        ao3 = 'https://archiveofourown.org/works/%d'
+        ffnet = 'https://www.fanfiction.net/s/%d/'
+        def highest(*stories):
+            records = [{'storyUrl': url % i, 'rating': rating} for i, (url, rating) in enumerate(stories)]
+            return _combined_story_fields(records).get('collectionHighestRating')
+        self.assertEqual(highest((ao3, 'Teen And Up Audiences'), (ao3, 'Mature')), 'Mature')
+        self.assertIsNone(highest((ao3, 'Mature'), (ao3, 'Not Rated')))
+        self.assertIsNone(highest((ao3, 'Mature'), (ao3, '')))
+        self.assertIsNone(highest((ao3, 'Mature'), (ffnet, 'M')))
+        self.assertEqual(highest((ffnet, 'Fiction K+'), (ffnet, 'Fiction T')), 'T')
+
+
 if __name__ == '__main__':
     unittest.main()

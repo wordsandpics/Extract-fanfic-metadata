@@ -31,6 +31,11 @@ KEY_MODE2_OVERWRITE = 'mode2Overwrite'
 
 KEY_MODE3_ENABLED = 'mode3Enabled'
 KEY_COLUMN_MAPPING = 'columnMapping'
+# {story field key: True | 'highest' | 'all'} for column-mapping rows ticked
+# "Also for anthologies" (calibre_fields.ANTHOLOGY_PAIRS).
+KEY_ANTHOLOGY_FIELDS = 'anthologyFields'
+# Standard metadata: set Published to the earliest story's date for anthologies.
+KEY_ANTHOLOGY_PUBDATE = 'anthologyPubdate'
 
 KEY_ADD_IDENTIFIER = 'addMissingIdentifier'
 KEY_PREVIEW = 'preview'
@@ -57,9 +62,11 @@ DEFAULT_STORE_VALUES = {
 
     KEY_MODE2_ENABLED: False,
     KEY_MODE2_OVERWRITE: False,
+    KEY_ANTHOLOGY_PUBDATE: False,
 
     KEY_MODE3_ENABLED: False,
     KEY_COLUMN_MAPPING: {},
+    KEY_ANTHOLOGY_FIELDS: {},
 
     KEY_ADD_IDENTIFIER: True,
     KEY_PREVIEW: True,
@@ -337,9 +344,18 @@ class ConfigWidget(QWidget):
             "Blank publication dates and Calibre's Unknown author are filled in.")
         self.mode2_overwrite.setChecked(prefs[KEY_MODE2_OVERWRITE])
 
+        self.anthology_pubdate = QCheckBox(
+            'For anthologies, set Published to the earliest story\'s date', self)
+        self.anthology_pubdate.setToolTip(
+            "Anthologies have no publication date of their own. If checked, "
+            "Published is set to the earliest date among the anthology's "
+            "stories, as FanFicFare does for its anthologies.")
+        self.anthology_pubdate.setChecked(prefs[KEY_ANTHOLOGY_PUBDATE])
+
         inner = QVBoxLayout()
         inner.addWidget(subtext)
         inner.addWidget(self.mode2_overwrite)
+        inner.addWidget(self.anthology_pubdate)
         group.setLayout(inner)
         return group
 
@@ -353,6 +369,7 @@ class ConfigWidget(QWidget):
             "your library directly, not just a staging column.")
         self.mode3_group = group
         self.column_mapping = dict(prefs[KEY_COLUMN_MAPPING])
+        self.anthology_fields = dict(prefs[KEY_ANTHOLOGY_FIELDS])
 
         subtext = _subtext_label(
             "(Map extracted data directly to your own columns - useful if "
@@ -372,9 +389,11 @@ class ConfigWidget(QWidget):
 
     def _open_column_mapping(self, custom_columns):
         dialog = ColumnMappingDialog(self, custom_columns, self.column_mapping,
-                                     reserved_column=self.dest_column.currentData())
+                                     reserved_column=self.dest_column.currentData(),
+                                     anthology_fields=self.anthology_fields)
         if dialog.exec() == ColumnMappingDialog.DialogCode.Accepted:
             self.column_mapping = dialog.mapping()
+            self.anthology_fields = dialog.anthology_fields()
             self._update_mode3_summary()
             self._refresh_saved_columns()
 
@@ -392,6 +411,8 @@ class ConfigWidget(QWidget):
         prefs[KEY_MODE2_OVERWRITE] = self.mode2_overwrite.isChecked()
         prefs[KEY_MODE3_ENABLED] = self.mode3_group.isChecked()
         prefs[KEY_COLUMN_MAPPING] = self.column_mapping
+        prefs[KEY_ANTHOLOGY_FIELDS] = self.anthology_fields
+        prefs[KEY_ANTHOLOGY_PUBDATE] = self.anthology_pubdate.isChecked()
         prefs[KEY_ADD_IDENTIFIER] = self.add_identifier.isChecked()
         prefs[KEY_PREVIEW] = self.preview.isChecked()
         prefs[KEY_SHOW_CONFIRMATION] = self.show_confirmation.isChecked()

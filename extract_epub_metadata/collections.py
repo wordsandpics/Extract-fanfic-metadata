@@ -95,7 +95,47 @@ def _combined_story_fields(records):
     updated = [r['dateUpdated'] for r in records if r.get('dateUpdated')]
     if updated:
         combined['collectionLatestUpdated'] = max(updated)
+    ratings = [_plain_rating(r) for r in records]
+    listed = list(dict.fromkeys(r for r in ratings if r))
+    if listed:
+        combined['collectionRatings'] = listed
+    highest = _highest_rating(records, ratings)
+    if highest:
+        combined['collectionHighestRating'] = highest
     return combined
+
+
+# Each site's own rating scale, lowest first. AO3's "Not Rated" means the
+# author didn't choose, so it can't be ranked and no highest is given.
+_RATING_SCALES = {
+    'archiveofourown.org': ['General Audiences', 'Teen And Up Audiences', 'Mature', 'Explicit'],
+    'fanfiction.net': ['K', 'K+', 'T', 'M', 'MA'],
+}
+
+
+def _plain_rating(record):
+    rating = str(record.get('rating') or '').strip()
+    m = re.fullmatch(r'Fiction\s+(K\+?|T|MA?)', rating)
+    return m.group(1) if m and _story_site(record) == 'fanfiction.net' else rating
+
+
+def _story_site(record):
+    host = urlsplit(record.get('storyUrl') or '').netloc.lower()
+    for prefix in ('www.', 'm.'):
+        if host.startswith(prefix):
+            return host[len(prefix):]
+    return host
+
+
+def _highest_rating(records, ratings):
+    """Empty unless every story has a rating on the same site's scale."""
+    sites = {_story_site(r) for r in records}
+    if len(sites) != 1:
+        return None
+    scale = _RATING_SCALES.get(sites.pop())
+    if not scale or not ratings or any(r not in scale for r in ratings):
+        return None
+    return max(ratings, key=scale.index)
 
 
 def _series_status(opf):

@@ -1,11 +1,12 @@
 from qt.core import (
-    QAbstractItemView, QComboBox, QDialog, QDialogButtonBox, QFormLayout,
-    QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QPlainTextEdit,
+    QAbstractItemView, QCheckBox, QComboBox, QDialog, QDialogButtonBox,
+    QGridLayout, QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QPlainTextEdit,
     QScrollArea, QSplitter, Qt, QVBoxLayout, QWidget,
 )
 
 from calibre_plugins.extract_epub_metadata.calibre_fields import (
-    ALL_METADATA_KEYS, compatible_columns_for_key, field_help, field_label,
+    ALL_METADATA_KEYS, ANTHOLOGY_PAIRS, ANTHOLOGY_RATING_ALL, ANTHOLOGY_RATING_HIGHEST,
+    compatible_columns_for_key, field_help, field_label,
 )
 from calibre_plugins.extract_epub_metadata.anthology import format_summary, story_detail_lines
 from calibre_plugins.extract_epub_metadata.extractors._text import html_to_text
@@ -204,10 +205,12 @@ class ColumnMappingDialog(QDialog):
     (calibre_fields.py::compatible_columns_for_key). Fields with no
     compatible column in this library aren't shown."""
 
-    def __init__(self, gui, custom_columns, current_mapping, reserved_column=None):
+    def __init__(self, gui, custom_columns, current_mapping, reserved_column=None,
+                 anthology_fields=None):
         QDialog.__init__(self, gui)
         self.setWindowTitle('Extract Fanfic Metadata -- Custom Column Mapping')
-        self.resize(600, 420)
+        self.resize(720, 460)
+        anthology_fields = anthology_fields or {}
 
         # current_mapping is {column_key: metadata_key} (matches how it's
         # stored/consumed elsewhere) -- invert it once for O(1) lookup of
@@ -219,14 +222,17 @@ class ColumnMappingDialog(QDialog):
         intro = QLabel(
             'Choose which column each extracted field should be written '
             'to. Empty or not mapped fields will be skipped. '
-            'The Saved Metadata column is reserved for raw metadata.')
+            'The Saved Metadata column is reserved for raw metadata.\n'
+            'Tick "Also for anthologies" to fill that column for anthologies too, '
+            'with the value for the whole anthology.')
         intro.setWordWrap(True)
         layout.addWidget(intro)
 
         scroll = QScrollArea(self)
         scroll.setWidgetResizable(True)
         form_widget = QWidget(scroll)
-        form = QFormLayout(form_widget)
+        form = QGridLayout(form_widget)
+        form.setColumnStretch(1, 1)
 
         # The dropdown lists every column compatible by *datatype* alone
         # (calibre_fields.py::compatible_columns_for_key doesn't try to
@@ -236,11 +242,15 @@ class ColumnMappingDialog(QDialog):
         # distinguishing "this plugin's field" from "your column".
         header_field = QLabel('Extracted Field', form_widget)
         header_column = QLabel('Write To Column', form_widget)
-        for header in (header_field, header_column):
+        header_anthology = QLabel('Also for anthologies', form_widget)
+        for header in (header_field, header_column, header_anthology):
             font = header.font()
             font.setBold(True)
             header.setFont(font)
-        form.addRow(header_field, header_column)
+        form.addWidget(header_field, 0, 0)
+        form.addWidget(header_column, 0, 1)
+        form.addWidget(header_anthology, 0, 2)
+        self.anthology_controls = {}
 
         self.rows = []
         custom_columns = {k: v for k, v in custom_columns.items() if k != reserved_column}
@@ -263,9 +273,17 @@ class ColumnMappingDialog(QDialog):
                 label.setToolTip(help_text)
                 combo.setToolTip(help_text)
 
-            form.addRow(label, combo)
+            row = len(self.rows) + 1
+            form.addWidget(label, row, 0)
+            form.addWidget(combo, row, 1)
+            control = self._anthology_control(metadata_key, anthology_fields.get(metadata_key),
+                                              form_widget)
+            if control is not None:
+                form.addWidget(control, row, 2)
+                self.anthology_controls[metadata_key] = control
             self.rows.append((metadata_key, combo))
 
+        form.setRowStretch(len(self.rows) + 1, 1)
         form_widget.setLayout(form)
         scroll.setWidget(form_widget)
         layout.addWidget(scroll, 1)
@@ -280,6 +298,39 @@ class ColumnMappingDialog(QDialog):
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
+
+    @staticmethod
+    def _anthology_control(metadata_key, current, parent):
+        if metadata_key not in ANTHOLOGY_PAIRS:
+            return None
+        tip = ('For anthologies, fill this column with the value for the whole '
+               'anthology. Unticked, anthologies leave it empty.')
+        if metadata_key == 'rating':
+            control = QComboBox(parent)
+            control.addItem("Don't fill", '')
+            control.addItem('Highest', ANTHOLOGY_RATING_HIGHEST)
+            control.addItem('All (comma separated)', ANTHOLOGY_RATING_ALL)
+            control.setCurrentIndex(max(0, control.findData(current or '')))
+            control.setToolTip(
+                'Highest: the highest rating on the site\'s own scale; left empty when the '
+                'stories come from different sites or any story is "Not Rated".\n'
+                'All: every rating used in the anthology, comma separated.')
+            return control
+        control = QCheckBox(parent)
+        control.setChecked(bool(current))
+        control.setToolTip(tip)
+        return control
+
+    def anthology_fields(self):
+        result = {}
+        for metadata_key, control in self.anthology_controls.items():
+            if isinstance(control, QComboBox):
+                value = control.currentData()
+                if value:
+                    result[metadata_key] = value
+            elif control.isChecked():
+                result[metadata_key] = True
+        return result
 
     def mapping(self):
         result = {}
