@@ -119,5 +119,58 @@ class FreshNumericTest(unittest.TestCase):
         for text in ('1,234', '1 234', '1\u2009234', '1\xa0234', '1\u202f234'):
             self.assertEqual(parse_count(text), 1234, text)
         self.assertEqual(parse_count(0), 0)
+
+class AnthologyPreviewFactsTest(unittest.TestCase):
+    """Step 2 of the anthology version: facts gathered for the preview only."""
+
+    def test_story_lists_from_title_page(self):
+        from extract_epub_metadata.anthology import _add_story_lists
+        ao3 = {'storyUrl': 'https://archiveofourown.org/works/1'}
+        _add_story_lists({'category': 'Fandom A, Fandom B', 'characters': 'X, Y',
+                          'relationships': 'X/Y', 'genre': 'M/M, Fluff'}, ao3)
+        self.assertEqual(ao3['fandoms'], ['Fandom A', 'Fandom B'])
+        self.assertEqual(ao3['characters'], ['X', 'Y'])
+        self.assertEqual(ao3['ships'], ['X/Y'])
+        self.assertNotIn('freeformtags', ao3)
+        other = {'storyUrl': 'https://forums.spacebattles.com/threads/1/'}
+        _add_story_lists({'category': 'AU'}, other)
+        self.assertNotIn('fandoms', other)
+
+    def test_combined_lists_and_date_range(self):
+        import datetime
+        from extract_epub_metadata.collections import _combined_story_fields
+        d = datetime.datetime
+        records = [
+            {'fandoms': ['A'], 'characters': ['X', 'Y'], 'datePublished': d(2012, 5, 1), 'dateUpdated': d(2012, 6, 1)},
+            {'fandoms': ['B', 'A'], 'characters': ['Y', 'Z'], 'datePublished': d(2011, 1, 1), 'dateUpdated': d(2015, 1, 1)},
+            {'ships': ['X/Z']},
+        ]
+        combined = _combined_story_fields(records)
+        self.assertEqual(combined['collectionFandoms'], ['A', 'B'])
+        self.assertEqual(combined['collectionCharacters'], ['X', 'Y', 'Z'])
+        self.assertEqual(combined['collectionShips'], ['X/Z'])
+        self.assertEqual(combined['collectionEarliestPublished'], d(2011, 1, 1))
+        self.assertEqual(combined['collectionLatestUpdated'], d(2015, 1, 1))
+        self.assertEqual(_combined_story_fields([{}]), {})
+
+    def test_series_status_is_the_single_outer_status_tag(self):
+        from extract_epub_metadata.collections import _series_status
+        self.assertEqual(_series_status({'subjects': ['Fluff', 'Completed']}), 'Completed')
+        self.assertIsNone(_series_status({'subjects': ['Fluff']}))
+        self.assertIsNone(_series_status({'subjects': ['Completed', 'In-Progress']}))
+        fields, _ = extract_fields(FRESH / 'anthology-complete.epub')
+        self.assertEqual(fields['collectionSeriesStatus'], 'Completed')
+
+    def test_preview_facts_are_not_written_anywhere_yet(self):
+        from extract_epub_metadata.calibre_fields import ALL_METADATA_KEYS
+        fields, _ = extract_fields(FRESH / 'anthology-mixed-status.epub')
+        new_keys = {'collectionSeriesStatus', 'collectionEarliestPublished', 'collectionLatestUpdated',
+                    'collectionFandoms', 'collectionCharacters', 'collectionShips'}
+        self.assertTrue(new_keys & set(fields))
+        self.assertFalse(new_keys & set(ALL_METADATA_KEYS))
+        computed = compute_standard_fields(fields)
+        self.assertNotIn('pubdate', computed)
+
+
 if __name__ == '__main__':
     unittest.main()

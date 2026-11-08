@@ -21,7 +21,9 @@ Calibre import) and unit-testable the same way as mapping.py/
 calibre_fields.py.
 """
 import datetime
+import re
 import xml.etree.ElementTree as ET
+from urllib.parse import urlsplit
 from zipfile import ZipFile
 
 from .extractors._epubxml import find_all, find_first, parse_opf, parse_xhtml, spine_item_paths, text_content
@@ -168,6 +170,37 @@ def _enrich_from_content_opf(zf, title_page_path, record):
                 record['title'] = text
 
 
+# FanFicFare's title page has no Fandom line; for AO3 and fanfiction.net its
+# Category holds the fandoms (same rule as mapping.py for single stories).
+_CATEGORY_IS_FANDOM_SITES = {'archiveofourown.org', 'fanfiction.net'}
+
+
+def _split_list(value):
+    # FanFicFare joins list values with ", " (mapping.py splits the same way).
+    if not value:
+        return []
+    return [p.strip() for p in re.split(r',\s*', value) if p.strip()]
+
+
+def _site(url):
+    host = urlsplit(url or '').netloc.lower()
+    return host[4:] if host.startswith('www.') else host
+
+
+def _add_story_lists(scraped, record):
+    """Each story's fandoms, characters and relationships, as written on its
+    title page. Genre is left out: on AO3 title pages FanFicFare mixes
+    additional tags with categories (M/M, Gen...) there by default."""
+    fandoms = _split_list(scraped.get('fandoms') or scraped.get('fandom'))
+    if not fandoms and _site(record.get('storyUrl')) in _CATEGORY_IS_FANDOM_SITES:
+        fandoms = _split_list(scraped.get('category'))
+    for key, values in (('fandoms', fandoms),
+                        ('characters', _split_list(scraped.get('characters'))),
+                        ('ships', _split_list(scraped.get('relationships') or scraped.get('ships')))):
+        if values:
+            record[key] = values
+
+
 def extract_fic_records(zf: ZipFile):
     """
     Returns a list of per-fic dicts (spine order):
@@ -221,6 +254,7 @@ def extract_fic_records(zf: ZipFile):
                 record['dateUpdated'] = d
 
         _enrich_from_content_opf(zf, title_page_path, record)
+        _add_story_lists(scraped, record)
 
         # Spine items can include notes/cover pages. Do not guess a chapter
         # count from their number, especially when it will feed a total.

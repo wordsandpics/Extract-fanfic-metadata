@@ -66,12 +66,44 @@ def extract_collection(zf, opf=None):
                     values = [parse_count(r.get(key)) for r in records]
                     if all(v is not None for v in values):
                         fields[total] = sum(values)
+            fields.update(_combined_story_fields(records))
             sources.update({k: 'collection_stories' for k in fields if k not in sources})
+        series_status = _series_status(opf)
+        if series_status:
+            fields['collectionSeriesStatus'] = series_status
+            sources['collectionSeriesStatus'] = 'collection_opf'
     else:
         reported = _series_page_fields(zf)
         fields.update(reported)
         sources.update({k: 'collection_series_page' for k in reported})
     return fields, sources
+
+
+def _combined_story_fields(records):
+    """Anthology-wide values built the way FanFicFare builds its own
+    anthology metadata: lists joined without duplicates (first appearance
+    order), earliest published date, latest updated date."""
+    combined = {}
+    for key, out in (('fandoms', 'collectionFandoms'), ('characters', 'collectionCharacters'),
+                     ('ships', 'collectionShips')):
+        values = list(dict.fromkeys(v for r in records for v in r.get(key) or []))
+        if values:
+            combined[out] = values
+    published = [r['datePublished'] for r in records if r.get('datePublished')]
+    if published:
+        combined['collectionEarliestPublished'] = min(published)
+    updated = [r['dateUpdated'] for r in records if r.get('dateUpdated')]
+    if updated:
+        combined['collectionLatestUpdated'] = max(updated)
+    return combined
+
+
+def _series_status(opf):
+    """FanFicFare drops the stories' own Completed/In-Progress tags when it
+    merges an anthology, then adds the series page's status (when the site
+    gives one). So a single status tag on the outer book is the series status."""
+    found = {s for s in (opf.get('subjects') or []) if s in ('Completed', 'In-Progress')}
+    return found.pop() if len(found) == 1 else None
 
 
 def _series_page_fields(zf):
