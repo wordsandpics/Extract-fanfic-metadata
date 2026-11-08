@@ -5,7 +5,7 @@ from qt.core import (
 )
 
 from calibre_plugins.extract_epub_metadata.calibre_fields import (
-    ALL_METADATA_KEYS, ANTHOLOGY_PAIRS, ANTHOLOGY_RATING_ALL, ANTHOLOGY_RATING_HIGHEST,
+    ALL_METADATA_KEYS, ANTHOLOGY_HELP, ANTHOLOGY_PAIRS, ANTHOLOGY_RATING_ALL, ANTHOLOGY_RATING_HIGHEST,
     compatible_columns_for_key, field_help, field_label,
 )
 from calibre_plugins.extract_epub_metadata.anthology import format_summary, story_detail_lines
@@ -304,18 +304,15 @@ class ColumnMappingDialog(QDialog):
     def _anthology_control(metadata_key, current, parent):
         if metadata_key not in ANTHOLOGY_PAIRS:
             return None
-        tip = ('For anthologies, fill this column with the value for the whole '
-               'anthology. Unticked, anthologies leave it empty.')
+        tip = ANTHOLOGY_HELP.get(metadata_key, 'For anthologies: the value for the whole anthology.')
+        tip += '\nOff: this column stays empty for anthologies.'
         if metadata_key == 'rating':
             control = QComboBox(parent)
             control.addItem("Don't fill", '')
             control.addItem('Highest', ANTHOLOGY_RATING_HIGHEST)
             control.addItem('All (comma separated)', ANTHOLOGY_RATING_ALL)
             control.setCurrentIndex(max(0, control.findData(current or '')))
-            control.setToolTip(
-                'Highest: the highest rating on the site\'s own scale; left empty when the '
-                'stories come from different sites or any story is "Not Rated".\n'
-                'All: every rating used in the anthology, comma separated.')
+            control.setToolTip(tip)
             return control
         control = QCheckBox(parent)
         control.setChecked(bool(current))

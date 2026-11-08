@@ -227,6 +227,22 @@ ANTHOLOGY_PAIRS = {
                ANTHOLOGY_RATING_ALL: 'collectionRatings'},
 }
 
+# Hover help for each "Also for anthologies" control (wording matches SETTINGS.md).
+ANTHOLOGY_HELP = {
+    'status': 'For anthologies: the series status the file records ("Completed" or '
+              '"In-Progress"). Left empty when none is recorded; never worked out from the stories.',
+    STATUS_COMPLETE_KEY: 'For anthologies: yes when the series is marked complete.',
+    'datePublished': "For anthologies: the earliest story's published date.",
+    'dateUpdated': "For anthologies: the latest story's updated date.",
+    'numChapters': "For anthologies: chapters across all stories, added up. Blank if any "
+                   "story's count is unknown.",
+    'fandoms': "For anthologies: every story's fandoms, combined and listed once.",
+    'characters': "For anthologies: every story's characters, combined and listed once.",
+    'ships': "For anthologies: every story's relationships, combined and listed once.",
+    'rating': 'For anthologies. Highest: the highest rating on the site\'s own scale; left '
+              'empty when the stories come from different sites or any story is "Not Rated". '
+              'All: every rating used in the anthology, comma separated.',
+}
 
 def _fields_for_column(fields, metadata_key, anthology_choices):
     """The fields one mapped column reads: for an anthology whose row is

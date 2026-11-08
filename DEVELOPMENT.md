@@ -159,11 +159,39 @@ FanFicFare’s Saved Metadata import expects one story URL, so Saved Metadata is
 
 Existing anthology identifiers are preserved. Anthology previews show which values will be written or kept; books with no eligible changes can’t be selected for writing.
 
-### Anthology status report
+### Anthology-wide values
 
-This separate action reads the status of individual stories inside epubmerge anthologies and writes a compact report to a column you choose. It has its own destination, overwrite, preview, and confirmation settings on the **Anthology Status** tab.
+FanFicFare builds its own anthology metadata (`merge_meta_books` in its plugin) by joining
+list fields, keeping the earliest published and latest updated dates, adding up chapters and
+words, and taking status only from the series page. The plugin follows those rules for the
+"Also for anthologies" column-mapping choices (`ANTHOLOGY_PAIRS` in `calibre_fields.py`):
 
-The report includes completion counts and, when available, story authors, URLs, dates, chapter counts, and word counts. Long summaries, ratings, and warnings appear in the detailed preview. Unknown statuses are reported separately. Non-anthology books are skipped with an explanation.
+- **Status** is the single Completed/In-Progress tag on the outer EPUB. FanFicFare removes the
+  stories' own status tags when merging and adds the series page's status, so that tag is the
+  series status. No tag, or both, leaves Status empty; it is never worked out from the stories.
+- **Fandoms, characters and relationships** come from each story's FanFicFare title page and are
+  combined in first-appearance order without duplicates. Category supplies fandoms only for AO3
+  and fanfiction.net, as for single stories. Genre is not used: on AO3 title pages FanFicFare
+  mixes freeform tags with AO3 categories there. Calibre's Tags already come from the outer EPUB.
+- **Rating, Highest** uses each site's scale (AO3: General Audiences < Teen And Up Audiences <
+  Mature < Explicit; fanfiction.net: K < K+ < T < M < MA) and is empty when sites differ or any
+  rating is missing or off the scale, including AO3's "Not Rated". **All** lists each rating once.
+- **Published** for standard metadata is opt-in and uses the earliest story date.
+
+Rows that aren't ticked stay empty for anthologies. Single stories ignore the ticks.
+
+### Anthology Story Report
+
+The `collectionStoryReport` field holds `format_summary()`'s text: a first line of the form
+`N/M fics complete.`, an optional unknown-status line, then each story's status, chapter and
+word counts, authors, URL and dates. Users parse this text with Calibre templates, so
+`tests/test_pipeline.py` pins it; changing it is a breaking change. Long summaries, ratings
+and warnings stay in the detailed preview. It is offered for Long text columns only.
+
+Until 1.3.0 a separate "Extract story status from anthology" action wrote this report, with
+its own settings tab. `prefs_migration.py` maps that action's column to the field once and
+drops its settings; it leaves the mapping alone if the column is already used or is the Saved
+Metadata column, and switches on custom-column updates only when the report is the sole mapping.
 
 ## Known limitations
 

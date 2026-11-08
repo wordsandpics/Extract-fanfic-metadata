@@ -45,7 +45,7 @@ Saved Metadata needs a supported story URL. Standard fields and custom columns m
 
 The plugin can recover anthology metadata and available totals from supported anthologies, including EPUBs of a whole series. Use standard metadata or custom columns for these; FanFicFare’s Saved Metadata applies to individual stories.
 
-The separate **Extract story status from anthology** action creates a report of the included stories and their completion status. Configure its destination column on the **Anthology Status** tab.
+Your story columns can also fill in for anthologies: tick **Also for anthologies** for each field in the column mapping. The **Anthology Story Report** field writes a report of the included stories and their completion status. See [Anthologies](SETTINGS.md#anthologies) in the settings guide.
 
 ## What to expect
 

@@ -20,5 +20,14 @@ class SettingsDocTests(unittest.TestCase):
         self.assertEqual(sorted(r for r in rows if r in labels),sorted(labels))
 
 
+    def test_every_anthology_choice_has_help_and_is_documented(self):
+        from extract_epub_metadata.calibre_fields import ANTHOLOGY_HELP, ANTHOLOGY_PAIRS
+        self.assertEqual(sorted(ANTHOLOGY_HELP), sorted(ANTHOLOGY_PAIRS))
+        section = DOC.split('\n## Anthologies\n', 1)[1].split('\n## ', 1)[0]
+        table = [line for line in section.splitlines() if line.startswith('| ')]
+        for key in ANTHOLOGY_PAIRS:
+            self.assertTrue(any(field_label(key) in line.split(' | ')[0] for line in table), key)
+
+
 if __name__=='__main__':
     unittest.main()

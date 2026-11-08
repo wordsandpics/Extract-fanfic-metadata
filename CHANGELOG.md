@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+- Anthologies can fill your story columns: tick **Also for anthologies** in the column
+  mapping for Status (the series status), Completed?, Date Published (earliest story),
+  Date Updated (latest story), Chapter Count, Fandom(s), Characters and Relationship(s).
+  Rating can use the highest rating or list them all. Off by default.
+- Optionally set Calibre's Published date for anthologies to the earliest story's date.
+- The anthology report is now the **Anthology Story Report** field in the column mapping,
+  with the same text. The separate "Extract story status from anthology" menu item and the
+  Anthology Status settings tab are removed; your report column is added to the mapping
+  automatically. Mapped columns are always refreshed, so the report's own overwrite
+  setting no longer applies.
 - Store fanfiction.net ratings as FanFicFare does ("M" rather than "Fiction M"),
   whichever tool saved the file.
 

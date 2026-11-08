@@ -7,10 +7,11 @@ Metadata → Customize plugin**, or choose **Configure…** from the plugin's to
 Fields are only filled when the file contains that information. Missing details are
 left blank, never guessed.
 
-## Extraction tab
+## Write options
 
-You can turn on any combination of the three write options below. Each one has its
-own overwrite setting.
+You can turn on any combination of the three write options below. Saved Metadata and
+standard metadata each have their own overwrite setting; mapped custom columns are
+always refreshed.
 
 ### Save all extracted metadata
 
@@ -46,6 +47,9 @@ Writes straight into Calibre's own fields:
   value are left alone. Blank published dates and Calibre's "Unknown" author are
   still filled in. When on, recovered values replace existing ones, and Tags are
   replaced as a whole.
+- **For anthologies, set Published to the earliest story's date:** anthologies have no
+  publication date of their own. When on, Published is set to the earliest date among
+  the anthology's stories, as FanFicFare does. Off by default.
 
 These direct updates don't apply your FanFicFare `personal.ini` changes. To use those,
 save the extracted metadata instead and run FanFicFare's update action.
@@ -57,6 +61,9 @@ count column. Useful whether or not you use FanFicFare.
 
 - **Configure column mapping…:** pick a column for each field you want. Each field
   only lists columns of a suitable type. See [Fields](#fields) below.
+- **Also for anthologies:** some story fields can also fill their column for
+  anthologies, with the value for the whole anthology. Tick the ones you want; they are
+  off by default. See [Anthologies](#anthologies).
 
 A column can't be both the Saved Metadata column and a mapped column.
 
@@ -70,18 +77,36 @@ A column can't be both the Saved Metadata column and a mapped column.
 - **Show confirmation after writing:** shows a short summary of how many books were
   updated.
 
-## Anthology Status tab
+## Anthologies
 
-Settings for the separate **Extract story status from anthology** action. It reports
-the completion status of each story inside an anthology EPUB made by FanFicFare, since
-the anthology's own status only describes the whole bundle.
+An anthology is one EPUB holding several stories, such as one made with FanFicFare's
+anthology feature, or an EPUB of a whole series. FanFicFare's Saved Metadata works one
+story at a time, so it is skipped for anthologies; use standard metadata or custom
+columns instead.
 
-- **Destination Column:** a Long text column for the report. It must be different
-  from the Saved Metadata column.
-- **Overwrite existing column value:** when off, books that already have a report are
-  skipped.
-- **Preview before writing** and **Show confirmation after writing:** as on the
-  Extraction tab. Books that aren't anthologies show in the preview unchecked, with a note.
+**Filled automatically:** Title, Author(s), Summary, Language and Calibre's Tags come
+from the anthology itself. Word Count is the total across all stories, when every
+story's count is known.
+
+**Also for anthologies:** in **Configure column mapping…**, tick a row to fill that
+column for anthologies too:
+
+| Field | For an anthology |
+|---|---|
+| Status | The series status the file records: "Completed" or "In-Progress". Left empty when none is recorded; never worked out from the stories. |
+| Completed? (yes/no) | Yes when the series is marked complete. |
+| Date Published | The earliest story's published date. |
+| Date Updated | The latest story's updated date. |
+| Chapter Count | Chapters across all stories, added up. Blank if any story's count is unknown. |
+| Fandom(s), Characters, Relationship(s) | Each story's values, combined and listed once. |
+| Rating | A dropdown: **Don't fill**; **Highest**, on the site's own scale (left empty when the stories come from different sites or any story is "Not Rated"); or **All**, every rating used, comma separated. |
+
+A series can be "In-Progress" while every story you have is complete: the author may
+still add stories. The [Anthology Story Report](#anthology-fields) and the story counts
+describe the stories themselves.
+
+Other story fields stay empty for anthologies. Details for each story, such as its
+rating, warnings and summary, are shown in the preview.
 
 ## Fields
 
@@ -170,9 +195,11 @@ how many the story will have, when known. Chapters (Downloaded/Total) shows both
 | File Format | The file the metadata came from: "epub", "txt" or "pdf". | Text |
 | File Extension | The matching file extension, e.g. ".epub". | Text |
 
-### Anthologies
+### Anthology fields
 
 These fields only apply to anthology EPUBs, including EPUBs of a whole series or a saved series page.
+The Anthology Story Report replaces the separate "Extract story status from anthology"
+action of earlier versions; its text is unchanged.
 
 | Field | What it holds | Holds |
 |---|---|---|
