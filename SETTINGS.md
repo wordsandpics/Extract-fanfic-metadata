@@ -79,10 +79,13 @@ A column can't be both the Saved Metadata column and a mapped column.
 
 ## Anthologies
 
-An anthology is one EPUB holding several stories, such as one made with FanFicFare's
-anthology feature, or an EPUB of a whole series. FanFicFare's Saved Metadata works one
-story at a time, so it is skipped for anthologies; use standard metadata or custom
-columns instead.
+An anthology is one EPUB that bundles several stories, usually made with FanFicFare's
+anthology feature, for example from a whole AO3 series. The plugin recovers the
+anthology's own details and totals across its stories.
+
+Not every field applies to an anthology. FanFicFare's Saved Metadata works one story at
+a time, so it is skipped for anthologies; use standard metadata or custom columns
+instead.
 
 **Filled automatically:** Title, Author(s), Summary, Language and Calibre's Tags come
 from the anthology itself. Word Count is the total across all stories, when every
