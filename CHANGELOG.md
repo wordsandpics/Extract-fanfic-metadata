@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [1.3.0] - 2026-11-08
 
 - Anthologies can fill your story columns: tick **Also for anthologies** in the column
   mapping for Status (the series status), Completed?, Date Published (earliest story),
