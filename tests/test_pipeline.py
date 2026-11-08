@@ -748,5 +748,32 @@ class AnthologyTest(unittest.TestCase):
 
     def test_format_summary_empty_for_no_records(self):
         self.assertEqual(format_summary([]), '')
+
+    def test_report_text_is_unchanged(self):
+        # Users parse this report with Calibre templates (e.g. a cover status
+        # column reads '^N/M fics complete.' from the first line). Any change
+        # to the wording or layout here is a breaking change for them.
+        summary = format_summary(self.records)
+        self.assertRegex(summary.splitlines()[0], r'^[0-9]+/[0-9]+ fics complete\.$')
+        self.assertEqual(summary.splitlines()[:6], [
+            '6/7 fics complete.',
+            '',
+            '1. Synthetic anthology-mixed-status Story 1 -- Completed (12 ch, 17,673 words)',
+            '   By: TestWriter16',
+            '   https://archiveofourown.org/works/98000276',
+            '   Published: 2016-03-08; Updated: 2016-03-12',
+        ])
+        self.assertEqual(summary.splitlines()[-4:], [
+            '7. Synthetic anthology-mixed-status Story 7 -- In-Progress (110 ch, 300,469 words)',
+            '   By: TestWriter16',
+            '   https://archiveofourown.org/works/98000282',
+            '   Updated: 2026-07-16',
+        ])
+
+    def test_report_first_line_stays_first_with_unknown_statuses(self):
+        records = [{'title': 'A', 'status': 'Completed'}, {'title': 'B'}]
+        lines = format_summary(records).splitlines()
+        self.assertEqual(lines[0], '1/2 fics complete.')
+        self.assertEqual(lines[1], '1 fic(s) have unknown status.')
 if __name__ == '__main__':
     unittest.main()

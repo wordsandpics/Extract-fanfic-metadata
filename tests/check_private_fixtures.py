@@ -15,5 +15,10 @@ if __name__ == '__main__':
     if not (PRIVATE / 'fixtures').is_dir():
         raise SystemExit('Private original tests are not present. Use the public synthetic test suite instead.')
     suite = unittest.defaultTestLoader.discover(str(PRIVATE), pattern='test_*.py')
+    # Optional private anthology samples with their own baseline check.
+    anthologies = ROOT / 'tests/private-fixtures/anthologies'
+    if (anthologies / 'test_anthology_baseline.py').is_file():
+        suite.addTests(unittest.defaultTestLoader.discover(
+            str(anthologies), pattern='test_*.py', top_level_dir=str(anthologies)))
     result = unittest.TextTestRunner(verbosity=1).run(suite)
     raise SystemExit(not result.wasSuccessful())
