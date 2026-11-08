@@ -256,5 +256,27 @@ class AlsoForAnthologiesTest(unittest.TestCase):
         self.assertEqual(highest((ffnet, 'Fiction K+'), (ffnet, 'Fiction T')), 'T')
 
 
+
+class AnthologyCommentsTest(unittest.TestCase):
+    """Plain-text anthology descriptions keep their line breaks in Comments."""
+
+    def test_plain_text_becomes_paragraphs(self):
+        fields = {'collectionType': 'epubmerge anthology',
+                  'description': 'Anthology containing:\n\n         Umbrella by A & B\n\n         Rain\n         Starts'}
+        self.assertEqual(compute_standard_fields(fields)['comments'],
+                         '<p>Anthology containing:</p>\n<p>Umbrella by A &amp; B</p>\n<p>Rain<br />Starts</p>')
+
+    def test_html_descriptions_are_kept(self):
+        html = '<p>Anthology containing:</p>Back in the Day<br/>One Fixed Point'
+        fields = {'collectionType': 'epubmerge anthology', 'description': html}
+        self.assertEqual(compute_standard_fields(fields)['comments'], html)
+
+    def test_real_fixture_has_one_paragraph_per_story(self):
+        fields, _ = extract_fields(FRESH / 'anthology-mixed-status.epub')
+        comments = compute_standard_fields(fields)['comments']
+        self.assertTrue(comments.startswith('<p>'), comments)
+        self.assertGreater(comments.count('<p>'), 1)
+
+
 if __name__ == '__main__':
     unittest.main()

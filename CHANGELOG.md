@@ -12,6 +12,8 @@
   Anthology Status settings tab are removed; your report column is added to the mapping
   automatically. Mapped columns are always refreshed, so the report's own overwrite
   setting no longer applies.
+- Fix: anthology Comments written by standard metadata lost their line breaks; plain-text
+  anthology descriptions now keep one paragraph per line, as when Calibre imports the file.
 - Store fanfiction.net ratings as FanFicFare does ("M" rather than "Fiction M"),
   whichever tool saved the file.
 

@@ -14,7 +14,8 @@ case, not a full FFF replacement.
 
 compute_standard_fields() is pure (no Calibre import needed) and unit-
 testable the same way as mapping.py/serialize.py -- it formats plain
-descriptions as escaped HTML, preserves collection descriptions, and
+descriptions as escaped HTML, keeps HTML anthology descriptions (plain ones
+become paragraphs), and
 defers sanitizing until writing, so it stays importable outside Calibre (Calibre's own
 sanitize_comments_html(), which FFF itself uses, needs a real
 `calibre.library` package). apply_standard_fields() and
@@ -23,6 +24,8 @@ apply_custom_column_mapping() need a live `db`
 sanitization at write time, and can only be exercised via calibre-debug
 against a real library.
 """
+import re
+
 
 # FFF's default include_subject_tags for AO3 (plugin-defaults.ini) is:
 # extratags, genre, category, characters, ships, status -- where genre and
@@ -40,6 +43,26 @@ TAG_SOURCE_KEYS = (
     'fandoms', 'ships', 'characters', 'freeformtags', 'ao3categories',
     'genre', 'status', 'extratags',
 )
+
+
+_HTML_TAG_RE = re.compile(r'<[A-Za-z/][^>]*>')
+
+
+def _anthology_comments(description):
+    """An anthology's outer description may be HTML (kept as is) or, as in
+    FanFicFare-made anthologies, plain text with one story per line and blank
+    lines between. Plain text becomes one paragraph per block, keeping line
+    breaks, since Calibre's sanitize_comments_html() would otherwise run it
+    all into one paragraph."""
+    if _HTML_TAG_RE.search(description):
+        return description
+    from html import escape
+    paragraphs = []
+    for block in re.split(r'\n\s*\n', description.strip()):
+        lines = [line.strip() for line in block.splitlines() if line.strip()]
+        if lines:
+            paragraphs.append('<p>%s</p>' % '<br />'.join(escape(line) for line in lines))
+    return '\n'.join(paragraphs)
 
 
 def compute_standard_fields(fields, anthology_pubdate=False):
@@ -80,7 +103,7 @@ def compute_standard_fields(fields, anthology_pubdate=False):
 
     if fields.get('description'):
         if fields.get('collectionType'):
-            computed['comments'] = fields['description']  # outer description may be rich HTML
+            computed['comments'] = _anthology_comments(fields['description'])
         else:
             from html import escape
             description = escape(fields['description']).replace('\n', '<br />')
