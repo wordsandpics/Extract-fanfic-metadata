@@ -83,6 +83,11 @@ TITLEPAGE_LABEL_TO_KEY = {
     # fichub.net's "Rated: Fiction M - Language: ... - ..." composite
     # line -- see _split_composite_label_value below).
     'rated': 'rating',
+    # FanFicFare's default title page lists these too; for a shared FFF
+    # file they can be the only record of the series and author page.
+    'series': 'series',
+    'series url': 'seriesUrl',
+    'author url': 'authorUrl',
 }
 
 # Deliberately no entries for 'reviews'/'favs'/'follows' -- fanfiction.net's
@@ -189,6 +194,9 @@ def _split_composite_label_value(value):
     return segments[0], sub_entries
 
 
+_TITLEPAGE_SERIES_RE = re.compile(r'^\S.* \[\d+(?:\.\d+)?\]$')
+
+
 def _map_titlepage(titlepage):
     result = {}
     if not titlepage:
@@ -245,6 +253,12 @@ def _map_titlepage(titlepage):
             # for the "not complete" case.
             result['status'] = ('Completed' if str(value).strip().lower().startswith('complete')
                                  else 'In-Progress')
+            continue
+        if key == 'series' and not _TITLEPAGE_SERIES_RE.match(str(value).strip()):
+            # Only FFF's own "Name [index]" form; anything else is left out.
+            continue
+        if key in ('seriesUrl', 'authorUrl') and not all(
+                u.startswith('http') for u in re.split(r',\s*', str(value).strip())):
             continue
         result[key] = _coerce_for_key(key, value)
     return result

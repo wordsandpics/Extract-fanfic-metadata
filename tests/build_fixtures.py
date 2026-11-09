@@ -84,7 +84,9 @@ def labels(f):
 
 def titlepage(f, bold=False):
     body='<h3><a href="'+e(f.get('storyUrl','https://example.com/synthetic'))+'">'+e(f['title'])+'</a> by '+e(', '.join(f.get('author',[])))+'</h3>'
-    body+=''.join(('<b>'+e(k)+':</b> '+e(v)+'<br/>' if bold else '<p>'+e(k)+': '+e(v)+'</p>') for k,v in labels(f))
+    extra=[(label,', '.join(f[key]) if isinstance(f[key],list) else f[key])
+           for key,label in (('series','Series'),('seriesUrl','Series URL'),('authorUrl','Author URL')) if key in f]
+    body+=''.join(('<b>'+e(k)+':</b> '+e(v)+'<br/>' if bold else '<p>'+e(k)+': '+e(v)+'</p>') for k,v in labels(f)+extra)
     return page(body,'fff_titlepage' if bold else '')
 
 

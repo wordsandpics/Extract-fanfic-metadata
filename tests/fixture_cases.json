@@ -2623,5 +2623,43 @@
       "dateUpdated": "2024-10-06",
       "status": "In-Progress"
     }
+  },
+  {
+    "name": "fff-bold-series-only-titlepage.epub",
+    "kind": "fff_bold",
+    "fields": {
+      "title": "Synthetic FFF Series On Title Page",
+      "author": [
+        "TestWriter66"
+      ],
+      "langcode": "en",
+      "description": "Synthetic fff-bold-series summary paragraph one.\n\nSynthetic paragraph two ends here.",
+      "storyUrl": "https://archiveofourown.org/works/98000651",
+      "category": [
+        "TestCategory05"
+      ],
+      "genre": [
+        "M/M"
+      ],
+      "language": "English",
+      "status": "In-Progress",
+      "datePublished": "2024-08-23T00:00:00",
+      "dateUpdated": "2024-12-11T00:00:00",
+      "dateCreated": "2024-12-22T05:52:05",
+      "rating": "Teen And Up Audiences",
+      "warnings": [
+        "No Archive Warnings Apply"
+      ],
+      "numChapters": 14,
+      "numWords": 15921,
+      "ships": [
+        "TestPair66/TestPartner66"
+      ],
+      "series": "Synthetic Outtakes Series [3]",
+      "seriesUrl": "https://archiveofourown.org/series/98000652",
+      "authorUrl": [
+        "https://archiveofourown.org/users/TestWriter66/pseuds/TestWriter66"
+      ]
+    }
   }
 ]
