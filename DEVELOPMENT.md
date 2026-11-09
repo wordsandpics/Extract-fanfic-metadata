@@ -10,7 +10,7 @@ The plugin is built and tested primarily with Archive of Our Own (AO3) EPUBs, in
 
 - fanfiction.net EPUBs from [fichub.net](https://fichub.net) and the [WebToEpub browser extension](https://github.com/dteviot/WebToEpub)
 - FicLab fanfiction.net EPUBs, checked against four downloads from versions 1.0.111 and 1.0.113
-- AO3 EPUBs from ficdownloader and [AO3 Saver](https://ao3saver.com)
+- AO3 EPUBs from [ficdownloader](https://ficdownloader.com) and [AO3 Saver](https://ao3saver.com)
 - AO3 works saved from a [Wayback Machine](https://web.archive.org) snapshot using WebToEpub or [Save as eBook](https://chromewebstore.google.com/detail/save-as-ebook/haaplkpoiimngbppjihnegfmpejdnffj)
 - AO3 PDF downloads converted to EPUB
 - EPUBs with a clearly labelled opening header from a PDF conversion, for a limited set of fields
