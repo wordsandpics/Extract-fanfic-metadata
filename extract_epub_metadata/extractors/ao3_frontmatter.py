@@ -455,7 +455,9 @@ def extract_ao3_frontmatter(zf):
             tag = local_name(elem.tag)
             if tag == 'h1' or (tag == 'h2' and 'title' in (elem.get('class') or '').split()):
                 title = ' '.join(text_content(elem).split())
-            byline = (tag == 'div' and 'byline' in (elem.get('class') or '').split()) or tag == 'h3'
+            # AO3 Saver's preface: an unmarked <div>by <a>pseud</a>, ...</div>.
+            plain_by = tag == 'div' and (elem.text or '').strip().lower() == 'by'
+            byline = (tag == 'div' and 'byline' in (elem.get('class') or '').split()) or tag == 'h3' or plain_by
             links = [a for a in find_all(elem, 'a') if _PSEUD_URL_RE.search(a.get('href') or '')
                      and (tag == 'div' or 'author' in (a.get('rel') or '').split())] if byline else []
             if links:

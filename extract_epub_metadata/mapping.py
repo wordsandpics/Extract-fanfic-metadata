@@ -371,6 +371,14 @@ def extract_fields(epub_stream):
         opf_fields.setdefault('site', fanficfare_uid.get('site'))
         opf_fields.setdefault('storyId', fanficfare_uid.get('storyid'))
 
+    # A mirror such as AO3 Saver records its own address in the OPF; the
+    # AO3 preface's "Posted originally ... at" link is the real work URL.
+    ao3_url = ao3_fields.get('storyUrl')
+    opf_url = opf_fields.get('storyUrl')
+    if (ao3_url and opf_url and canonical_ao3_url(ao3_url)
+            and not canonical_ao3_url(unwrap_wayback_url(opf_url) or opf_url)):
+        del opf_fields['storyUrl']
+
     fallback_fields = {'storyUrl': fallback_url} if fallback_url else {}
 
     # A whole web page saved as an EPUB by a generic browser extension gets

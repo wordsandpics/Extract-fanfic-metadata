@@ -2577,5 +2577,51 @@
       "dateUpdated": "2024-02-14",
       "status": "Completed"
     }
+  },
+  {
+    "name": "ao3saver-coauthors.epub",
+    "kind": "ao3saver",
+    "fields": {
+      "title": "Synthetic AO3 Saver Coauthors",
+      "author": [
+        "TestWriter64",
+        "TestPseud65 (TestWriter64)"
+      ],
+      "authorUrl": [
+        "https://archiveofourown.org/users/TestWriter64/pseuds/TestWriter64",
+        "https://archiveofourown.org/users/TestWriter64/pseuds/TestPseud65"
+      ],
+      "description": "Synthetic AO3 Saver summary paragraph one.\n\nSynthetic paragraph two ends here.",
+      "storyUrl": "https://archiveofourown.org/works/98000641",
+      "rating": "General Audiences",
+      "language": "English",
+      "warnings": [
+        "No Archive Warnings Apply"
+      ],
+      "ao3categories": [
+        "M/M"
+      ],
+      "fandoms": [
+        "TestFandom64",
+        "TestFandom65"
+      ],
+      "ships": [
+        "TestPair64/TestPartner64"
+      ],
+      "characters": [
+        "TestCharacter64",
+        "TestCharacter65"
+      ],
+      "freeformtags": [
+        "TestTag641"
+      ],
+      "chapterslashtotal": "6/31",
+      "numChapters": 6,
+      "numChaptersTotal": 31,
+      "numWords": 642,
+      "datePublished": "2024-10-01",
+      "dateUpdated": "2024-10-06",
+      "status": "In-Progress"
+    }
   }
 ]

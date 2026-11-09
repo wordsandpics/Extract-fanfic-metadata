@@ -198,6 +198,23 @@ def build_epub(case):
         docs={'EPUB/intro.xhtml':page(body)}
         meta=('<meta name="generator" content="Ebook-lib 0.21.0"/><dc:identifier>'+e(f['storyUrl'])+'</dc:identifier>'
               '<dc:title>'+e(f['title'])+'</dc:title><dc:creator>'+e(', '.join(f['author']))+'</dc:creator><dc:language>'+e(f['langcode'])+'</dc:language>')
+    elif kind=='ao3saver':
+        # AO3 Saver's copy of AO3's preface: unmarked byline div, plain "Summary" line,
+        # and the mirror's own address in the OPF.
+        work_id=f['storyUrl'].rsplit('/',1)[1]
+        rows=[('Rating','rating'),('Archive Warning','warnings'),('Category','ao3categories'),('Fandoms','fandoms'),
+              ('Relationships','ships'),('Characters','characters'),('Additional Tags','freeformtags')]
+        dl=''.join('<dt>'+label+':</dt><dd>'+', '.join('<a href="https://archiveofourown.org/tags/x">'+e(v)+'</a>' for v in (f[k] if isinstance(f[k],list) else [f[k]]))+'</dd>' for label,k in rows if k in f)
+        dl+='<dt>Language:</dt><dd>'+e(f['language'])+'</dd>'
+        dl+='<dt>Stats:</dt><dd>Published: '+f['datePublished'][:10]+' Updated: '+f['dateUpdated'][:10]+' Words: '+format(f['numWords'],',')+' Chapters: '+f['chapterslashtotal']+'</dd>'
+        byline=', '.join('<a href="'+e(u)+'">'+e(n)+'</a>' for n,u in zip(f['author'],f['authorUrl']))
+        body=('<div id="preface"><p><b>'+e(f['title'])+'</b><br/>Posted originally on the <a href="https://archiveofourown.org/">Archive of Our Own</a> at '
+              '<a href="'+e(f['storyUrl'])+'">'+e(f['storyUrl'])+'</a>.</p><div><dl>'+dl+'</dl><h1>'+e(f['title'])+'</h1><div>by '+byline+'</div>'
+              '<p>Summary</p><blockquote>'+ps(f['description'])+'</blockquote><p>Notes</p><blockquote><p>Synthetic notes must be excluded.</p></blockquote>'
+              '<ul><li>Inspired by a synthetic work by <a href="https://archiveofourown.org/users/TestOther/pseuds/TestOther">TestOther</a></li></ul></div></div>')
+        docs={'OEBPS/pages/ch0-synthetic.xhtml':page(body)}
+        meta=('<dc:title>'+e(f['title'])+' - '+e(', '.join(f['author']))+' - '+e(f['fandoms'][0])+'</dc:title><dc:language>en</dc:language>'
+              '<dc:source>https://ao3saver.com/works/'+work_id+'?version=1234567</dc:source>')
     elif kind=='pdf':
         body='<h2>Posted originally on the Archive of Our Own at</h2><p><a href="'+e(f['storyUrl'].replace('https://archiveofourown.org','http://download.archiveofourown.org'))+'">Synthetic source</a></p>'
         for key,label in [('rating','Rating'),('warnings','Archive Warning'),('ao3categories','Category'),('fandoms','Fandom'),('ships','Relationship'),('characters','Characters'),('freeformtags','Additional Tags')]:
