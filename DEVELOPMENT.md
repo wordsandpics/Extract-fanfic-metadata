@@ -10,6 +10,7 @@ The plugin is built and tested primarily with Archive of Our Own (AO3) EPUBs, in
 
 - fanfiction.net EPUBs from [fichub.net](https://fichub.net) and the [WebToEpub browser extension](https://github.com/dteviot/WebToEpub)
 - FicLab fanfiction.net EPUBs, checked against four downloads from versions 1.0.111 and 1.0.113
+- AO3 EPUBs from ficdownloader and [AO3 Saver](https://ao3saver.com)
 - AO3 works saved from a [Wayback Machine](https://web.archive.org) snapshot using WebToEpub or [Save as eBook](https://chromewebstore.google.com/detail/save-as-ebook/haaplkpoiimngbppjihnegfmpejdnffj)
 - AO3 PDF downloads converted to EPUB
 - EPUBs with a clearly labelled opening header from a PDF conversion, for a limited set of fields
@@ -23,6 +24,27 @@ Other sites and EPUB layouts may work, but haven’t been tested. The plugin ski
 A FanFicFare title page has no Fandom line. For AO3 and fanfiction.net its
 Category holds the fandoms, so it fills Fandom(s) when no other source gives one.
 Other sites use Category for their own labels, so it stays Category only.
+
+Series, Series URL and Author URL are read from the title page too. Shared
+FanFicFare files may record them nowhere else. Series is used only in
+FanFicFare's `Name [N]` form, and the URLs only when they are links.
+
+### ficdownloader
+
+ficdownloader EPUBs (OPF generator "Ebook-lib") list AO3 metadata on an "About"
+page as labelled lines (`<span class="metadata-label">`), followed by Summary
+and Notes headings. The tool leaves some values out: a single fandom or
+relationship, and the "No Archive Warnings Apply" warning. Those stay empty;
+nothing is filled in. The story link comes from the page's Source line, since
+the OPF identifier has no `https://`.
+
+### AO3 Saver
+
+AO3 Saver EPUBs carry an AO3-style preface but record the AO3 Saver mirror
+address (`ao3saver.com/works/…`) as the source. The preface's original AO3 link
+is used instead, so FanFicFare can update the story. The byline is a plain
+`by <a>…</a>` line without AO3's author markup; co-authors and pseuds are read
+from it, and "Inspired by" credits are excluded.
 
 ### FicLab metadata
 

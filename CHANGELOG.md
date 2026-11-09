@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.3.1] - 2026-11-09
+
+- Read AO3 EPUBs made with ficdownloader: tags, series, chapters, dates, status,
+  summary and the story link from its "About" page.
+- Fix: AO3 Saver EPUBs now get their authors (co-authors listed separately), summary
+  and the original AO3 link instead of the AO3 Saver address, so FanFicFare can update them.
+- Recover the series, series link and author link from FanFicFare title pages when
+  the file records them nowhere else, as in shared FanFicFare downloads.
+
 ## [1.3.0] - 2026-11-08
 
 - Anthologies can fill your story columns: tick **Also for anthologies** in the column

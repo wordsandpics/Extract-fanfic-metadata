@@ -10,7 +10,7 @@ You can recover fields such as author, fandom, tags, summary, story URL, word co
 
 ## Supported files
 
-Supports common AO3 and fanfiction.net EPUB layouts, including FanFicFare, ao3downloader, Fichub, WebToEpub and FicLab exports, plus some saved web pages and PDF-to-EPUB conversions.
+Supports common AO3 and fanfiction.net EPUB layouts, including FanFicFare, ao3downloader, Fichub, WebToEpub, FicLab, ficdownloader and AO3 Saver exports, plus some saved web pages and PDF-to-EPUB conversions.
 
 TXT archives with recognizable opening metadata and AO3-generated PDFs can be read directly. EPUB takes priority, followed by TXT, then PDF; scanned PDFs and browser printouts are not supported.
 
