@@ -1,3 +1,5 @@
+![Extract Fanfic Metadata: the preview window and the settings window in Calibre](previews/header.png)
+
 # Extract Fanfic Metadata
 
 Formerly Extract EPUB Metadata.
