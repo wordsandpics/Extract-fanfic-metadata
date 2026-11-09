@@ -175,6 +175,29 @@ def build_epub(case):
         docs={'OEBPS/frontmatter/summary.xhtml':page('<table>'+''.join('<tr><th>'+k+'</th><td>'+e(v)+'</td></tr>' for k,v in summary)+'</table>','fl-summary'),
               'OEBPS/frontmatter/copyright.xhtml':page('<p>Synthetic test content copyrighted by <a href="'+e(f['authorUrl'][0])+'">'+e(f['author'][0])+'</a>. This entire example is invented.</p>','fl-copyright')}
         resources={'META-INF/ficlab-id':'synthetic-fixture'}
+    elif kind=='ficdownloader':
+        # ficdownloader's "About" page: labelled paragraphs, then Summary/Notes headings.
+        order=[('author','Author'),('rating','Rating'),('language','Language'),('warnings','Warnings'),
+               ('fandoms','Fandoms'),('ao3categories','Category'),('characters','Characters'),
+               ('ships','Relationships'),('freeformtags','Additional Tags')]
+        rows=[(label,', '.join(f[k]) if isinstance(f[k],list) else f[k]) for k,label in order if k in f]
+        if 'series' in f:
+            n,idx=f['series'].rsplit(' [',1);rows.append(('Series','Part '+idx[:-1]+' of '+n))
+        rows+=[('Chapters',f['chapterslashtotal']),('Words',format(f['numWords'],',')),
+               ('Published',f['datePublished'][:10]),('Updated',f['dateUpdated'][:10]),('Status',f['status'])]
+        body='<h1>'+e(f['title'])+'</h1><h2>About</h2><div class="metadata">'
+        body+=''.join('<p><span class="metadata-label">'+k+':</span> '+e(v)+'</p>' for k,v in rows)
+        body+='<p><span class="metadata-label">Source:</span> <a href="'+e(f['storyUrl'])+'">'+e(f['storyUrl'])+'</a></p></div>'
+        paras=f.get('description','').split('\n\n') if f.get('description') else []
+        if case.get('folded_summary') and paras:
+            # A summary section folded inside <details>, as AO3 work skins allow.
+            body+='<h2>Summary</h2>'+ps(paras[0])+'<details open="open"><summary><b>Synthetic fold label</b></summary><blockquote>'+ps('\n\n'.join(paras[1:]))+'</blockquote></details>'
+        else:
+            body+='<h2>Summary</h2>'+ps('\n\n'.join(paras)) if paras else '<h2>Summary</h2>'
+        body+='<h2>Notes</h2><p>Synthetic notes must be excluded.</p>'
+        docs={'EPUB/intro.xhtml':page(body)}
+        meta=('<meta name="generator" content="Ebook-lib 0.21.0"/><dc:identifier>'+e(f['storyUrl'])+'</dc:identifier>'
+              '<dc:title>'+e(f['title'])+'</dc:title><dc:creator>'+e(', '.join(f['author']))+'</dc:creator><dc:language>'+e(f['langcode'])+'</dc:language>')
     elif kind=='pdf':
         body='<h2>Posted originally on the Archive of Our Own at</h2><p><a href="'+e(f['storyUrl'].replace('https://archiveofourown.org','http://download.archiveofourown.org'))+'">Synthetic source</a></p>'
         for key,label in [('rating','Rating'),('warnings','Archive Warning'),('ao3categories','Category'),('fandoms','Fandom'),('ships','Relationship'),('characters','Characters'),('freeformtags','Additional Tags')]:

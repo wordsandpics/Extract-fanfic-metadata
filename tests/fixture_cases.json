@@ -2502,5 +2502,80 @@
       "language": "en",
       "description": "Synthetic pdf-labelled-header summary paragraph one.\n\nSynthetic paragraph two ends here."
     }
+  },
+  {
+    "name": "ficdownloader-coauthors-series.epub",
+    "kind": "ficdownloader",
+    "folded_summary": true,
+    "fields": {
+      "title": "Synthetic ficdownloader Coauthors Series",
+      "author": [
+        "TestWriter61",
+        "TestWriter62"
+      ],
+      "langcode": "en",
+      "description": "Synthetic ficdownloader summary paragraph one.\\n\\nSynthetic folded paragraph two.\\n\\nSynthetic folded paragraph three.",
+      "storyUrl": "https://archiveofourown.org/works/98000611",
+      "rating": "Teen And Up Audiences",
+      "language": "English",
+      "warnings": [
+        "Creator Chose Not To Use Archive Warnings"
+      ],
+      "fandoms": [
+        "TestFandom61",
+        "TestFandom62"
+      ],
+      "ao3categories": [
+        "Gen"
+      ],
+      "characters": [
+        "TestCharacter61",
+        "TestCharacter62"
+      ],
+      "ships": [
+        "TestPair61/TestPartner61",
+        "TestPair62 & TestPartner62"
+      ],
+      "freeformtags": [
+        "TestTag611",
+        "TestTag612"
+      ],
+      "series": "Synthetic ficdownloader Series [3]",
+      "chapterslashtotal": "9/?",
+      "numChapters": 9,
+      "numWords": 21064,
+      "datePublished": "2024-05-24",
+      "dateUpdated": "2024-09-13",
+      "status": "In-Progress"
+    }
+  },
+  {
+    "name": "ficdownloader-sparse-complete.epub",
+    "kind": "ficdownloader",
+    "fields": {
+      "title": "Synthetic ficdownloader Sparse Complete",
+      "author": [
+        "TestWriter63"
+      ],
+      "langcode": "es",
+      "storyUrl": "https://archiveofourown.org/works/98000631",
+      "rating": "Not Rated",
+      "language": "Español",
+      "ao3categories": [
+        "M/M"
+      ],
+      "characters": [
+        "TestCharacter63"
+      ],
+      "freeformtags": [
+        "TestTag631"
+      ],
+      "chapterslashtotal": "1/1",
+      "numChapters": 1,
+      "numWords": 280,
+      "datePublished": "2024-02-14",
+      "dateUpdated": "2024-02-14",
+      "status": "Completed"
+    }
   }
 ]

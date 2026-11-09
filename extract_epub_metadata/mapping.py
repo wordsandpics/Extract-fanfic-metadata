@@ -27,6 +27,7 @@ from .extractors.ao3_pdf_preface import extract_ao3_pdf_preface
 from .extractors.fallback_link_scan import extract_story_url_fallback
 from .extractors.ffnet_infopage import extract_ffnet_infopage
 from .extractors.fff_titlepage import extract_fff_titlepage
+from .extractors.ficdownloader import SOURCE as FICDOWNLOADER_SOURCE, extract_ficdownloader
 from .extractors.ficlab import extract_ficlab
 from .extractors.opf import extract_opf
 from .extractors.pdf_header import extract_pdf_header
@@ -321,6 +322,7 @@ def extract_fields(epub_stream):
             return collection
         titlepage = extract_fff_titlepage(zf)
         ficlab_fields, ficlab_sources = extract_ficlab(zf)
+        ficdl_fields = extract_ficdownloader(zf)
         ao3 = extract_ao3_frontmatter(zf)
         ao3_pdf = extract_ao3_pdf_preface(zf)
         ffnet_info = extract_ffnet_infopage(zf)
@@ -345,7 +347,7 @@ def extract_fields(epub_stream):
     # AO3's explicit byline links identify individual authors. Its OPF
     # may collapse coauthors into one comma-separated creator string.
     # Prefer the structured names instead of guessing at comma separators.
-    if authors and not ao3_fields.get('author'):
+    if authors and not ao3_fields.get('author') and not ficdl_fields.get('author'):
         opf_fields['author'] = authors
     if opf.get('language'):
         # dc:language is a code (e.g. "en"), not a display name -- FFF's
@@ -387,7 +389,7 @@ def extract_fields(epub_stream):
             if key in opf_fields:
                 opf_weak_fields[key] = opf_fields.pop(key)
 
-    fields = _merge(opf_fields, titlepage_mapped, ficlab_fields, ao3_fields, ao3_pdf_fields, ffnet_fields,
+    fields = _merge(opf_fields, titlepage_mapped, ficlab_fields, ficdl_fields, ao3_fields, ao3_pdf_fields, ffnet_fields,
                     pdf_header_fields,
                     fallback_fields,
                     opf_weak_fields)
@@ -395,6 +397,7 @@ def extract_fields(epub_stream):
     source_tiers = {}
     for tier_name, tier_fields in (
         ('opf', opf_fields), ('fff_titlepage', titlepage_mapped),
+        (FICDOWNLOADER_SOURCE, ficdl_fields),
         ('ao3_frontmatter', ao3_fields), ('ao3_pdf_preface', ao3_pdf_fields),
         ('ffnet_infopage', ffnet_fields),
         ('pdf_header', pdf_header_fields),
