@@ -1,9 +1,14 @@
 # Extract Fanfic Metadata 1.3.1
 
-Support for more of the tools people are using to save AO3 stories.
+Support for AO3's HTML downloads and more of the tools people are using to save AO3 stories.
 
 ## New
 
+- **AO3 HTML downloads are read directly.** AO3 currently offers only HTML downloads.
+  Add the .html file to Calibre as usual and run **Extract Metadata**: no need to convert
+  to EPUB first. It fills in the real title and author (instead of Calibre's "Title -
+  author - fandom" and "Unknown"), plus the summary, tags, series, counts, dates and AO3 link.
+  Web pages saved from a browser and other HTML still need converting to EPUB first.
 - **ficdownloader EPUBs** are now read: tags, series, chapters, dates, status, summary
   and the story link. ficdownloader itself leaves some values out (a single fandom or
   relationship, and "No Archive Warnings Apply"); those stay empty.

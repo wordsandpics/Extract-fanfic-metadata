@@ -1,7 +1,11 @@
 # Changelog
 
-## [1.3.1] - 2026-11-09
+## [1.3.1] - 2026-11-15
 
+- Read AO3 HTML downloads directly, as Calibre stores them (ZIP, or HTML), with no
+  conversion to EPUB. AO3 currently offers only HTML downloads. Title and author replace
+  Calibre's "Title - author - fandom" and "Unknown". Saved web pages and other HTML still
+  need converting to EPUB first.
 - Read AO3 EPUBs made with ficdownloader: tags, series, chapters, dates, status,
   summary and the story link from its "About" page.
 - Fix: AO3 Saver EPUBs now get their authors (co-authors listed separately), summary

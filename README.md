@@ -12,9 +12,9 @@ You can recover fields such as author, fandom, tags, summary, story URL, word co
 
 Supports common AO3 and fanfiction.net EPUB layouts, including FanFicFare, ao3downloader, Fichub, WebToEpub, FicLab, ficdownloader and AO3 Saver exports, plus some saved web pages and PDF-to-EPUB conversions.
 
-TXT archives with recognizable opening metadata and AO3-generated PDFs can be read directly. EPUB takes priority, followed by TXT, then PDF; scanned PDFs and browser printouts are not supported.
+TXT archives with recognizable opening metadata, AO3-generated PDFs and AO3 HTML downloads can be read directly. EPUB takes priority, followed by TXT, PDF, then HTML; scanned PDFs and browser printouts are not supported.
 
-For HTML files, import them into Calibre and convert to EPUB before running the plugin.
+Other HTML, such as web pages saved from a browser, needs converting to EPUB in Calibre before running the plugin.
 
 ## Install
 

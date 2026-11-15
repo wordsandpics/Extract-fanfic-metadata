@@ -92,15 +92,34 @@ temporary Calibre configuration with the plugin and FanFicFare installed, run
 It checks actual PDF extraction, preview, independent write modes, Saved Metadata
 loading and source preference in a temporary library.
 
+## Direct AO3 HTML input
+
+Calibre stores an added .html file as a ZIP book (its "HTML to ZIP" step), or as
+HTML when that step is off. Books with no EPUB, TXT or PDF are read from ZIP, then
+HTML. Only AO3's own download is read: the page must contain AO3's "Posted
+originally on the Archive of Our Own at …/works/N" line and the preface must give
+the title. In a ZIP, the first HTML file in name order with that line is used.
+
+The opening of the page, up to AO3's chapters block and at most 2 MB, is tidied
+into XHTML with the standard library and read by the same AO3 preface reader as
+EPUBs, in memory; the book's file is not changed. The browser `<title>` ("Title -
+author - fandom") is never used. Older downloads link to
+`download.archiveofourown.org`; those links become ordinary AO3 links. When a
+download has no Language line, Language stays empty. File Format is `html`.
+
+Browser-saved work pages, LiveJournal pages and other HTML are rejected with a
+message suggesting EPUB conversion, described below.
+
 ## HTML converted to EPUB
 
-Calibre imports HTML as ZIP. Convert that book to EPUB before running extraction.
+Calibre imports HTML as ZIP. AO3 downloads can be read directly (above); for
+other HTML, convert that book to EPUB before running extraction.
 The AO3 reader handles split/older download headers, summaries, plural Categories,
 and saved-page bylines. Explicit story headers replace browser-style title metadata;
 a clean edited OPF title keeps its priority. A page's story URL needs its own controls
 (chapter, bookmark or comment links, or the share box) to identify exactly one work;
 links in summaries, notes and story text are ignored. Unrelated author credits are not
-bylines. Direct HTML/ZIP input and LiveJournal headers are not supported.
+bylines. LiveJournal headers are not supported.
 
 ## Supported TXT archives
 
