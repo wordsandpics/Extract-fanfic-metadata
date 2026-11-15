@@ -4,7 +4,7 @@ All public fixtures contain invented metadata and short placeholder text. Their 
 
 ## Layouts and variations
 
-`tests/build_fixtures.py` shares builders across formats; `tests/fixture_cases.json` declares the scenarios. There are 52 generated EPUB/TXT examples plus one synthetic Saved Metadata HTML reference. Six additional synthetic PDFs are built by `tests/build_pdf_fixtures.py`. Named variations retain existing regression coverage for dates, missing URLs, multiple authors, collections, wrapped fields and source priorities.
+`tests/build_fixtures.py` shares builders across formats; `tests/fixture_cases.json` declares the scenarios. There are 56 generated EPUB/TXT/HTML/ZIP examples plus one synthetic Saved Metadata HTML reference. Six additional synthetic PDFs are built by `tests/build_pdf_fixtures.py`. Named variations retain existing regression coverage for dates, missing URLs, multiple authors, collections, wrapped fields and source priorities.
 
 | Fixture | Layout |
 |---|---|
@@ -60,6 +60,10 @@ All public fixtures contain invented metadata and short placeholder text. Their 
 | `ficdownloader-sparse-complete.epub` | ficdownloader |
 | `ao3saver-coauthors.epub` | ao3saver |
 | `fff-bold-series-only-titlepage.epub` | fff bold |
+| `ao3-html-download.html` | AO3 HTML download |
+| `ao3-html-calibre-zip.zip` | AO3 HTML download in Calibre's ZIP copy |
+| `ao3-html-older-download.html` | Older AO3 HTML download (download.archiveofourown.org) |
+| `ao3-html-saved-webpage.html` | Browser-saved work page; rejected |
 
 ## Direct PDF examples
 

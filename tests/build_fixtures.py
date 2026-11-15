@@ -255,6 +255,36 @@ def build_epub(case):
     write_epub(OUT/name,f,docs,extra,resources,other,meta)
 
 
+def build_html(case):
+    """AO3's HTML download (and Calibre's ZIP copy of one): HTML, not XHTML."""
+    name,kind,f=case['name'],case['kind'],case['fields']
+    old=kind=='ao3_html_old'
+    host='http://download.archiveofourown.org' if old else 'https://archiveofourown.org'
+    work=f.get('storyUrl','https://archiveofourown.org/works/98000699').replace('https://archiveofourown.org',host)
+    dl=ao3_dl({k:v for k,v in f.items() if not (old and k=='language')})
+    summary=''.join('<p>'+e(p).replace('\n','<br>')+'</p>' for p in f.get('description','').split('\n\n') if p)
+    message=('' if kind=='ao3_html_saved' else
+             '<p class="message">\n    <b>'+e(f['title'])+'</b><br />\n    Posted originally on the <a href="'+host+'/">Archive of Our Own</a> at <a href="'+e(work)+'">'+e(work)+'</a>.\n  </p>')
+    authors_html=', '.join('<a rel="author" href="'+e(u.replace('https://archiveofourown.org',host))+'">'+e(a)+'</a>' for a,u in zip(f['author'],f['authorUrl']))
+    page=('<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<title>'+e(f['title'])+' - '+e(', '.join(f['author']))+' - Synthetic Browser Title</title>\n'
+          '<style type="text/css">.meta dd { margin: -1em 0 0 10em; }</style>\n<script>var synthetic = "<p>not a tag</p>";</script>\n</head>\n<body>\n'
+          '<div id="preface">\n  <h2 class="toc-heading">Preface</h2>\n  '+message+'\n  <div class="meta">\n    '+dl+'\n'
+          '    <h1>'+e(f['title'])+'</h1>\n    <div class="byline">by '+authors_html+'</div>\n'
+          '      <p>Summary</p>\n      <blockquote class="userstuff">'+summary+'</blockquote>\n'
+          '      <p>Notes</p>\n      <blockquote class="userstuff"><p>Synthetic notes must be excluded&nbsp;here.</blockquote>\n  </div>\n</div>\n'
+          '<div id="chapters" class="userstuff">\n<div class="meta group"><h2 class="heading">Chapter 1</h2></div>\n'
+          '<div class="userstuff"><p>Synthetic chapter. Summary: not the summary<br>\n<p>Rating: not a rating\n</div>\n</div>\n'
+          '<div id="afterword"><p class="message">Synthetic afterword.</p></div>\n</body>\n</html>\n')
+    if name.endswith('.zip'):
+        # Calibre's "HTML to ZIP" step: the page plus its resources.
+        with ZipFile(OUT/name,'w') as z:
+            for member,value in (('Synthetic_Download.html',page),('synthetic.css','p { margin: 0; }')):
+                info=ZipInfo(member,(2020,1,1,0,0,0));info.compress_type=ZIP_DEFLATED
+                z.writestr(info,value.encode('utf-8'))
+    else:
+        (OUT/name).write_bytes(page.encode('utf-8'))
+
+
 def build_txt(case):
     kind,f=case['kind'],case['fields'];title=f['title']
     if kind in ('compact','spaced'):
@@ -293,7 +323,7 @@ def main():
     OUT=parser.parse_args().output
     OUT.mkdir(exist_ok=True)
     for case in CASES:
-        (build_txt if case['name'].endswith('.txt') else build_epub)(case)
+        (build_txt if case['name'].endswith('.txt') else build_html if case['kind'].startswith('ao3_html') else build_epub)(case)
     f=next(c['fields'] for c in CASES if c['name']=='ao3-native-complete.epub')
     parts=[]
     for key,value in f.items():

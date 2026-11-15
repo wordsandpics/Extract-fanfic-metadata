@@ -2661,5 +2661,199 @@
         "https://archiveofourown.org/users/TestWriter66/pseuds/TestWriter66"
       ]
     }
+  },
+  {
+    "name": "ao3-html-download.html",
+    "kind": "ao3_html",
+    "fields": {
+      "title": "Synthetic AO3 HTML Download",
+      "author": [
+        "TestWriter67"
+      ],
+      "authorUrl": [
+        "https://archiveofourown.org/users/TestWriter67/pseuds/TestWriter67"
+      ],
+      "storyUrl": "https://archiveofourown.org/works/98000671",
+      "description": "Synthetic ao3-html-download summary paragraph one.\n\nSynthetic paragraph two & more.",
+      "rating": "Teen And Up Audiences",
+      "warnings": [
+        "No Archive Warnings Apply"
+      ],
+      "ao3categories": [
+        "F/M",
+        "M/M",
+        "Multi"
+      ],
+      "fandoms": [
+        "TestFandom67"
+      ],
+      "ships": [
+        "TestPair67/TestPartner67",
+        "TestPair67/TestPartner67/TestThird67"
+      ],
+      "characters": [
+        "TestPair67",
+        "TestPartner67",
+        "TestThird67"
+      ],
+      "freeformtags": [
+        "Synthetic Tag",
+        "Alternate Universe - Synthetic"
+      ],
+      "language": "English",
+      "datePublished": "2025-01-28",
+      "dateUpdated": "2025-02-03",
+      "numWords": 4340,
+      "numChapters": 2,
+      "numChaptersTotal": 2,
+      "chapterslashtotal": "2/2",
+      "status": "Completed",
+      "series": "Synthetic HTML Series [1]",
+      "seriesUrl": "https://archiveofourown.org/series/98000672"
+    }
+  },
+  {
+    "name": "ao3-html-calibre-zip.zip",
+    "kind": "ao3_html",
+    "fields": {
+      "title": "Synthetic AO3 HTML In Calibre ZIP",
+      "author": [
+        "TestWriter67"
+      ],
+      "authorUrl": [
+        "https://archiveofourown.org/users/TestWriter67/pseuds/TestWriter67"
+      ],
+      "storyUrl": "https://archiveofourown.org/works/98000681",
+      "description": "Synthetic ao3-html-calibre-zip summary paragraph one.\n\nSynthetic paragraph two & more.",
+      "rating": "Teen And Up Audiences",
+      "warnings": [
+        "No Archive Warnings Apply"
+      ],
+      "ao3categories": [
+        "F/M",
+        "M/M",
+        "Multi"
+      ],
+      "fandoms": [
+        "TestFandom67"
+      ],
+      "ships": [
+        "TestPair67/TestPartner67",
+        "TestPair67/TestPartner67/TestThird67"
+      ],
+      "characters": [
+        "TestPair67",
+        "TestPartner67",
+        "TestThird67"
+      ],
+      "freeformtags": [
+        "Synthetic Tag",
+        "Alternate Universe - Synthetic"
+      ],
+      "language": "English",
+      "datePublished": "2025-01-28",
+      "dateUpdated": "2025-02-03",
+      "numWords": 4340,
+      "numChapters": 2,
+      "numChaptersTotal": 2,
+      "chapterslashtotal": "2/2",
+      "status": "Completed"
+    }
+  },
+  {
+    "name": "ao3-html-older-download.html",
+    "kind": "ao3_html_old",
+    "fields": {
+      "title": "Synthetic AO3 Older HTML Download",
+      "author": [
+        "TestWriter67"
+      ],
+      "authorUrl": [
+        "https://archiveofourown.org/users/TestWriter67/pseuds/TestWriter67"
+      ],
+      "storyUrl": "https://archiveofourown.org/works/98000691",
+      "description": "Synthetic ao3-html-older-download summary paragraph one.\n\nSynthetic paragraph two & more.",
+      "rating": "Teen And Up Audiences",
+      "warnings": [
+        "No Archive Warnings Apply"
+      ],
+      "ao3categories": [
+        "F/M",
+        "M/M",
+        "Multi"
+      ],
+      "fandoms": [
+        "TestFandom67"
+      ],
+      "ships": [
+        "TestPair67/TestPartner67",
+        "TestPair67/TestPartner67/TestThird67"
+      ],
+      "characters": [
+        "TestPair67",
+        "TestPartner67",
+        "TestThird67"
+      ],
+      "freeformtags": [
+        "Synthetic Tag",
+        "Alternate Universe - Synthetic"
+      ],
+      "language": "English",
+      "datePublished": "2025-01-28",
+      "dateUpdated": "2025-02-03",
+      "numWords": 4340,
+      "numChapters": 2,
+      "numChaptersTotal": 2,
+      "chapterslashtotal": "2/2",
+      "status": "Completed"
+    }
+  },
+  {
+    "name": "ao3-html-saved-webpage.html",
+    "kind": "ao3_html_saved",
+    "fields": {
+      "title": "Synthetic Saved Web Page Not Read",
+      "author": [
+        "TestWriter67"
+      ],
+      "authorUrl": [
+        "https://archiveofourown.org/users/TestWriter67/pseuds/TestWriter67"
+      ],
+      "storyUrl": "https://archiveofourown.org/works/98000695",
+      "description": "Synthetic ao3-html-saved-webpage summary paragraph one.\n\nSynthetic paragraph two & more.",
+      "rating": "Teen And Up Audiences",
+      "warnings": [
+        "No Archive Warnings Apply"
+      ],
+      "ao3categories": [
+        "F/M",
+        "M/M",
+        "Multi"
+      ],
+      "fandoms": [
+        "TestFandom67"
+      ],
+      "ships": [
+        "TestPair67/TestPartner67",
+        "TestPair67/TestPartner67/TestThird67"
+      ],
+      "characters": [
+        "TestPair67",
+        "TestPartner67",
+        "TestThird67"
+      ],
+      "freeformtags": [
+        "Synthetic Tag",
+        "Alternate Universe - Synthetic"
+      ],
+      "language": "English",
+      "datePublished": "2025-01-28",
+      "dateUpdated": "2025-02-03",
+      "numWords": 4340,
+      "numChapters": 2,
+      "numChaptersTotal": 2,
+      "chapterslashtotal": "2/2",
+      "status": "Completed"
+    }
   }
 ]

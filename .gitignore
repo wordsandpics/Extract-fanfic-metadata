@@ -2,6 +2,7 @@ __pycache__/
 *.pyc
 *.pyo
 *.zip
+!/tests/fixtures/*.zip
 /ao3downloader-testing/
 /tests/private-fixtures/
 /AGENTS.md

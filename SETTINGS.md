@@ -195,7 +195,7 @@ how many the story will have, when known. Chapters (Downloaded/Total) shows both
 | Story ID | The site's ID number for this story. | Text |
 | Site | The site the story was posted on, e.g. "archiveofourown.org". | Text |
 | Site Abbreviation | Short site code FanFicFare uses, e.g. "ao3". | Text |
-| File Format | The file the metadata came from: "epub", "txt" or "pdf". | Text |
+| File Format | The file the metadata came from: "epub", "txt", "pdf" or "html". | Text |
 | File Extension | The matching file extension, e.g. ".epub". | Text |
 
 ### Anthology fields

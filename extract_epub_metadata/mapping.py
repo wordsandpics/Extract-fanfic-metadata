@@ -321,6 +321,23 @@ def extract_pdf_fields(pdf_stream):
     return fields, sources
 
 
+def extract_html_fields(stream, is_zip=True):
+    """AO3 HTML download (Calibre's ZIP or HTML book) through the EPUB readers.
+
+    Only accepted when AO3's own preface supplied the work's identity, so an
+    unrelated page or archive is never read as a story.
+    """
+    from .extractors.html_zip import html_as_epub
+    epub = html_as_epub(stream, is_zip)
+    if epub is None:
+        return {}, {}
+    fields, sources = extract_fields(epub)
+    if sources.get('title') != 'ao3_frontmatter' or not canonical_ao3_url(fields.get('storyUrl') or ''):
+        return {}, {}
+    fields.update(formatname='html', formatext='.html')
+    return fields, {key: 'ao3_html' for key in sources if key in fields}
+
+
 def extract_fields(epub_stream):
     """
     epub_stream: path or file-like object openable as a zip.

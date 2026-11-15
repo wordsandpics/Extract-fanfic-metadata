@@ -372,7 +372,7 @@ FIELD_HELP = {
     'numChaptersTotal': 'The final planned chapter count, only present when the source itself '
                          'reports one -- absent (not zero) for an open-ended, still-updating '
                          'work whose author hasn\'t set a total.',
-    'formatname': 'The file the metadata came from: "epub", "txt" or "pdf".',
+    'formatname': 'The file the metadata came from: "epub", "txt", "pdf" or "html".',
     'formatext': 'The matching file extension, e.g. ".epub".',
     'fandoms': 'The fandom(s)/canon(s) this story is set in.',
     'ships': 'Relationships/pairings, as tagged on the source site.',

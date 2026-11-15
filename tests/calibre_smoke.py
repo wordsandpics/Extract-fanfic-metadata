@@ -7,6 +7,7 @@ import io
 import datetime
 import itertools
 import os
+import shutil
 import sys
 import tempfile
 from pathlib import Path
@@ -378,10 +379,52 @@ with plugin:
         assert 'txt_header' not in preferred.sources.values()
         missing = db.create_book_entry(Metadata('No supported format'))
         missing_result = action._process_book(api, missing, '#saved', txt_prefs, True, False, False, {}, columns)
-        assert 'No EPUB, TXT or PDF format' in missing_result.error and (not missing_result.has_writes)
+        assert 'No EPUB, TXT, PDF or AO3 HTML format' in missing_result.error and (not missing_result.has_writes)
         db.add_format(missing, 'TXT', io.BytesIO(b'Ordinary story text without metadata'), index_is_id=True)
         missing_result = action._process_book(api, missing, '#saved', txt_prefs, True, False, False, {}, columns)
         assert 'No recognizable opening metadata header' in missing_result.error and (not missing_result.has_writes)
+        # AO3 HTML downloads: Calibre's own import step stores .html as a ZIP book.
+        from calibre.customize.ui import run_plugins_on_import
+        html_results = []
+        for name, fmt in (('ao3-html-download.html', None), ('ao3-html-calibre-zip.zip', 'ZIP'),
+                          ('ao3-html-older-download.html', 'HTML')):
+            source_path = ROOT / 'tests/fixtures' / name
+            if fmt is None:
+                with tempfile.TemporaryDirectory(prefix='html-import-') as tmp:
+                    copy = Path(tmp) / name
+                    shutil.copy(source_path, copy)
+                    imported = run_plugins_on_import(str(copy), 'html')
+                    fmt = Path(imported).suffix[1:].upper()
+                    assert fmt == 'ZIP', imported
+                    data = Path(imported).read_bytes()
+            else:
+                data = source_path.read_bytes()
+            bid = db.create_book_entry(Metadata('Browser title - someone - fandom', ['Unknown']))
+            db.add_format(bid, fmt, io.BytesIO(data), index_is_id=True)
+            r = action._process_book(api, bid, '#saved', txt_prefs, True, True, False, {}, columns)
+            assert not r.error, (name, r.error)
+            assert r.fields['title'].startswith('Synthetic AO3') and r.fields['formatname'] == 'html'
+            assert set(r.sources.values()) == {'ao3_html'} and r.blob and r.identifier_url
+            html_results.append(r)
+        assert action._write_results(api, '#saved', html_results, True, True, False) == 3
+        with fff:
+            for r in html_results:
+                bid = r.book_id
+                assert api.field_for('title', bid) == r.fields['title']
+                assert api.field_for('authors', bid) == ('TestWriter67',)
+                assert api.field_for('comments', bid)
+                configuration = configurable.Configuration(adapters.getConfigSectionsFor(r.fields['storyUrl']), 'html')
+                configuration.read_file(io.StringIO(defaults))
+                story = Story(configuration)
+                story.load_html_metadata(api.field_for('#saved', bid))
+                for key in ('title', 'author', 'storyUrl', 'numWords', 'status', 'description'):
+                    assert story.metadata[key] == r.fields[key], (r.fields['title'], key)
+        saved_page = db.create_book_entry(Metadata('Saved page'))
+        db.add_format(saved_page, 'HTML', (ROOT / 'tests/fixtures/ao3-html-saved-webpage.html').open('rb'),
+                      index_is_id=True)
+        saved_result = action._process_book(api, saved_page, '#saved', txt_prefs, True, True, False, {}, columns)
+        assert 'No AO3 download header found in this HTML' in saved_result.error and not saved_result.has_writes
+        print('PASS: 3 AO3 HTML imports (Calibre ZIP, ZIP, HTML), writes and FFF round trips; saved page rejected.')
         variant_cases = [('txt-pdf-detached-partial', 'Synthetic TXT PDF Detached Partial', 857, 'txt_pdf_partial', None), ('txt-pdf-squidgeworld', 'Synthetic TXT PDF Squidgeworld', 1422, 'txt_pdf_preface', 'TestFandom15'), ('txt-spaced-missing-url', 'Synthetic TXT Spaced Missing URL', 373, 'txt_spaced_header', 'TestFandom13'), ('txt-spaced-wrapped-tags', 'Synthetic TXT Spaced Wrapped Tags', 799, 'txt_spaced_header', 'TestFandom13'), ('txt-spaced-multiple-fandoms', 'Synthetic TXT Spaced Multiple Fandoms', 565, 'txt_spaced_header', 'TestFandom14, TestFandom13')]
         variant_mapping = {'#words': 'numWords', '#fandom': 'fandoms'}
         variant_results = []

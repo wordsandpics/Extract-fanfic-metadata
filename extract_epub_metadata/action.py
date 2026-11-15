@@ -15,7 +15,8 @@ from calibre_plugins.extract_epub_metadata.config import (
 )
 from calibre_plugins.extract_epub_metadata.dialogs import BookResult, PreviewDialog
 from calibre_plugins.extract_epub_metadata.extractors._urls import is_wayback_url
-from calibre_plugins.extract_epub_metadata.mapping import extract_fields, extract_txt_fields, extract_pdf_fields
+from calibre_plugins.extract_epub_metadata.mapping import (extract_fields, extract_txt_fields, extract_pdf_fields,
+                                                           extract_html_fields)
 from calibre_plugins.extract_epub_metadata.fff_support import fff_import_support, fff_support_url
 from calibre_plugins.extract_epub_metadata.serialize import serialize_saved_metadata
 
@@ -83,14 +84,25 @@ class ExtractEpubMetadataAction(InterfaceAction):
                 book_format, extractor = 'TXT', extract_txt_fields
             elif db.has_format(book_id, 'PDF'):
                 book_format, extractor = 'PDF', extract_pdf_fields
+            elif db.has_format(book_id, 'ZIP'):
+                # Calibre stores an added .html file as a ZIP book by default.
+                book_format, extractor = 'ZIP', extract_html_fields
+            elif db.has_format(book_id, 'HTML'):
+                book_format = 'HTML'
+
+                def extractor(stream):
+                    return extract_html_fields(stream, is_zip=False)
             else:
-                raise ValueError('No EPUB, TXT or PDF format available for this book.')
+                raise ValueError('No EPUB, TXT, PDF or AO3 HTML format available for this book.')
             with db.format(book_id, book_format, as_file=True) as stream:
                 fields, sources = extractor(stream)
             if not fields:
                 if book_format == 'TXT':
                     raise ValueError('No recognizable opening metadata header found in this TXT. '
                                      'Expected a supported archive header or PDF-style preface.')
+                if book_format in ('ZIP', 'HTML'):
+                    raise ValueError('No AO3 download header found in this HTML. Saved web pages and '
+                                     'other HTML can be converted to EPUB in Calibre first.')
                 if book_format == 'PDF':
                     raise ValueError('No recognizable AO3 download header found in the opening PDF pages. '
                                      'Browser printouts and scanned PDFs are not supported.')
