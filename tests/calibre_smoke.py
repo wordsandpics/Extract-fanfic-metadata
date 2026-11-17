@@ -134,24 +134,47 @@ with plugin:
         mapping_dialog.overwrite_controls['numWords'].setChecked(False)
         mapping_dialog.overwrite_controls['fandoms'].setChecked(True)
         assert mapping_dialog.overwrite_fields() == {'fandoms': True}
+        from qt.core import QPoint, QScrollArea
+
+        def headings_aligned():
+            app.processEvents()
+            bar_x = mapping_dialog.header_bar.mapTo(mapping_dialog, QPoint(0, 0)).x()
+            for placeholder, label in zip(mapping_dialog.header_placeholders, mapping_dialog.header_labels):
+                expected = placeholder.mapTo(mapping_dialog, QPoint(0, 0)).x() - bar_x
+                assert label.x() == expected and label.isVisible(), (label.text(), label.x(), expected)
+        mapping_dialog.show()
+        for width in (800, 620, 1000):
+            mapping_dialog.resize(width, 460)
+            headings_aligned()
+        mapping_dialog.resize(560, 460)
+        mapping_dialog.findChild(QScrollArea).horizontalScrollBar().setValue(10 ** 6)
+        headings_aligned()
+        mapping_dialog.findChild(QScrollArea).horizontalScrollBar().setValue(0)
+        mapping_dialog.resize(800, 460)
+        mapping_dialog.findChild(QScrollArea).verticalScrollBar().setValue(10 ** 6)
+        headings_aligned()
+        mapping_dialog.findChild(QScrollArea).verticalScrollBar().setValue(0)
+        mapping_dialog.hide()
         if os.environ.get('EXTRACT_METADATA_SCREENSHOTS'):
             folder = Path(os.environ['EXTRACT_METADATA_SCREENSHOTS'])
             folder.mkdir(parents=True, exist_ok=True)
             mapping_dialog.show()
             app.processEvents()
             assert mapping_dialog.grab().save(str(folder / 'column-mapping-overwrite.png'))
-            from qt.core import QScrollArea
             scroll = mapping_dialog.findChild(QScrollArea)
             scroll.verticalScrollBar().setValue(scroll.verticalScrollBar().maximum())
             app.processEvents()
             assert mapping_dialog.grab().save(str(folder / 'column-mapping-overwrite-anthologies.png'))
+            mapping_dialog.resize(620, 460)
+            app.processEvents()
+            assert mapping_dialog.grab().save(str(folder / 'column-mapping-narrow.png'))
             mapping_dialog.hide()
         mapping_dialog.close()
         config.custom_overwrite = {'fandoms': True}
         config.save_settings()
         assert get_prefs()['customOverwrite'] == {'fandoms': True}
         plugin_prefs[STORE_NAME] = prefs
-        print('PASS: column-mapping Overwrite ticks load, change and save.')
+        print('PASS: column-mapping Overwrite ticks load, change and save; sticky headings stay aligned at 560-1000 px and when scrolled either way.')
         preview = PreviewDialog(gui, results)
         screenshots = os.environ.get('EXTRACT_METADATA_SCREENSHOTS')
         if screenshots:

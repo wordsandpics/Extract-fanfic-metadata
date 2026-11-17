@@ -1,7 +1,7 @@
 from qt.core import (
     QAbstractItemView, QCheckBox, QComboBox, QDialog, QDialogButtonBox,
     QGridLayout, QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QPlainTextEdit,
-    QScrollArea, QSplitter, Qt, QVBoxLayout, QWidget,
+    QEvent, QPoint, QScrollArea, QSplitter, Qt, QVBoxLayout, QWidget,
 )
 
 from calibre_plugins.extract_epub_metadata.calibre_fields import (
@@ -240,6 +240,7 @@ class ColumnMappingDialog(QDialog):
             'with the value for the whole anthology.')
         intro.setWordWrap(True)
         layout.addWidget(intro)
+        header_slot = layout.count()
 
         scroll = QScrollArea(self)
         scroll.setWidgetResizable(True)
@@ -247,7 +248,9 @@ class ColumnMappingDialog(QDialog):
         form = QGridLayout(form_widget)
         form.setColumnStretch(1, 1)
         margins = form.contentsMargins()
-        form.setContentsMargins(margins.left(), margins.top(), margins.right() + 16, margins.bottom())
+        # The zero-height heading row still gets one row of spacing; take it back.
+        form.setContentsMargins(margins.left(), max(0, margins.top() - max(form.verticalSpacing(), 0)),
+                                margins.right() + 16, margins.bottom())
 
         # The dropdown lists every column compatible by *datatype* alone
         # (calibre_fields.py::compatible_columns_for_key doesn't try to
@@ -255,15 +258,26 @@ class ColumnMappingDialog(QDialog):
         # shows up as a candidate for "Category" too, not just "Chapters
         # (Downloaded/Total)" -- confusing without a clear header
         # distinguishing "this plugin's field" from "your column".
-        header_field = QLabel('Extracted Field', form_widget)
-        header_column = QLabel('Write To Column', form_widget)
-        header_anthology = QLabel('Anthologies too', form_widget)
-        header_overwrite = QLabel('Overwrite', form_widget)
-        header_overwrite.setToolTip(OVERWRITE_TIP)
-        for header in (header_field, header_column, header_overwrite, header_anthology):
-            font = header.font()
-            font.setBold(True)
-            header.setFont(font)
+        # Headings stay visible while the rows scroll: zero-height copies in
+        # row 0 size and place each grid column, and the visible headings in
+        # a bar above the scroll area are moved to match them.
+        self.header_bar = QWidget(self)
+        header_texts = ('Extracted Field', 'Write To Column', 'Overwrite', 'Anthologies too')
+        placeholders, self.header_labels = [], []
+        for text in header_texts:
+            for parent, target in ((form_widget, placeholders), (self.header_bar, self.header_labels)):
+                header = QLabel(text, parent)
+                font = header.font()
+                font.setBold(True)
+                header.setFont(font)
+                if text == 'Overwrite':
+                    header.setToolTip(OVERWRITE_TIP)
+                target.append(header)
+        for header in placeholders:
+            header.setMaximumHeight(0)
+        self.header_placeholders = placeholders
+        self.header_bar.setFixedHeight(max(h.sizeHint().height() for h in self.header_labels))
+        header_field, header_column, header_overwrite, header_anthology = placeholders
         form.addWidget(header_field, 0, 0)
         form.addWidget(header_column, 0, 1)
         center = Qt.AlignmentFlag.AlignHCenter
@@ -313,9 +327,13 @@ class ColumnMappingDialog(QDialog):
         form.setRowStretch(len(self.rows) + 1, 1)
         form_widget.setLayout(form)
         scroll.setWidget(form_widget)
+        layout.insertWidget(header_slot, self.header_bar)
         layout.addWidget(scroll, 1)
+        form_widget.installEventFilter(self)
+        self.header_bar.installEventFilter(self)
 
         if not self.rows:
+            self.header_bar.hide()
             layout.addWidget(QLabel(
                 'No custom columns with a supported datatype found. Create '
                 'one in Preferences → Add your own columns first.'))
@@ -325,6 +343,19 @@ class ColumnMappingDialog(QDialog):
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
+
+    def eventFilter(self, watched, event):
+        if event.type() in (QEvent.Type.Resize, QEvent.Type.Move, QEvent.Type.LayoutRequest,
+                            QEvent.Type.Show):
+            self._place_headers()
+        return super().eventFilter(watched, event)
+
+    def _place_headers(self):
+        bar_x = self.header_bar.mapTo(self, QPoint(0, 0)).x()
+        for placeholder, label in zip(self.header_placeholders, self.header_labels):
+            x = placeholder.mapTo(self, QPoint(0, 0)).x() - bar_x
+            label.setGeometry(x, 0, max(placeholder.width(), label.sizeHint().width()),
+                              self.header_bar.height())
 
     @staticmethod
     def _anthology_control(metadata_key, current, parent):
