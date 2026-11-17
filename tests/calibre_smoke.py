@@ -91,6 +91,21 @@ with plugin:
         assert report == good.fields['collectionStoryReport']
         single = next((r for r in results if not r.fields.get('collectionType')))
         assert not api.field_for('#report', single.book_id)
+        # Unticked "Overwrite": a hand-entered value is kept and listed as skipped.
+        api.set_field('#words', {good.book_id: 7})
+        kept = action._process_book(api, good.book_id, '#saved', prefs, True, True, True, prefs['columnMapping'], columns)
+        assert '#words' in kept.custom_skipped and '#words' not in kept.custom_column_values
+        assert 'Existing values kept; these columns will be skipped:' in kept.summary_lines()
+        action._write_results(api, '#saved', [kept], True, True, True)
+        assert api.field_for('#words', good.book_id) == 7
+        plugin_prefs[STORE_NAME] = dict(prefs, customOverwrite={'numWords': True})
+        ticked = action._process_book(api, good.book_id, '#saved', get_prefs(), True, True, True, prefs['columnMapping'], columns)
+        assert ticked.custom_column_values.get('#words') == 93149 and '#words' not in ticked.custom_skipped
+        assert '#count' in ticked.custom_skipped
+        action._write_results(api, '#saved', [ticked], True, True, True)
+        assert api.field_for('#words', good.book_id) == 93149
+        plugin_prefs[STORE_NAME] = prefs
+        print('PASS custom-column overwrite: filled column kept unless ticked')
         expected = {'ao3-series-collection.epub': {'numWords': 11822, 'collectionStoryCount': 2}, 'ao3-information-thin-space.epub': {'numWords': 111536}, 'anthology-multiple-authors.epub': {'numWords': 93149, 'collectionChapterCount': 66}, 'ao3-split-coauthors.epub': {'author': ['TestWriter02', 'TestWriter03'], 'numWords': 17674}, 'ao3-anonymous-singular-tags.epub': {'author': ['Anonymous'], 'authorHTML': 'Anonymous'}}
         for path, r in zip(paths, results):
             for key, value in expected.get(path.name, {}).items():
@@ -154,6 +169,7 @@ with plugin:
                     raise RuntimeError('simulated write failure')
                 return api.set_field(name, values)
         prefs['mode2Overwrite'] = True
+        good.custom_fill_only = set()  # as if Overwrite were ticked
         plugin_prefs[STORE_NAME] = prefs
         good.standard_fields = {'title': 'Scratch partial update'}
         later = next((r for r in results if not r.fields.get('collectionType')))
@@ -317,7 +333,7 @@ with plugin:
         finally:
             action_module.info_dialog = original_info
         txt_cases = [('txt-compact-complete.txt', 'Synthetic TXT Compact Complete', 459, 'en'), ('txt-compact-packaged-date.txt', 'Synthetic TXT Compact Packaged Date', 66818, 'en'), ('txt-compact-missing-url.txt', 'Synthetic TXT Compact Missing URL', 26036, 'en'), ('txt-compact-spanish-ongoing.txt', 'Synthetic TXT Compact Spanish Ongoing', 2196, 'es'), ('txt-compact-spanish-complete.txt', 'Synthetic TXT Compact Spanish Complete — Café', 3740, 'es')]
-        txt_prefs = dict(prefs, mode2Overwrite=True)
+        txt_prefs = dict(prefs, mode2Overwrite=True, customOverwrite={'fandoms': True})
         plugin_prefs[STORE_NAME] = txt_prefs
         txt_results = []
         for name, title, words, language in txt_cases:

@@ -549,12 +549,45 @@ def compute_custom_column_values(fields, mapping, column_metadata, anthology_cho
     return computed
 
 
-def apply_custom_column_mapping(db, book_id, computed_values, written=None):
+def custom_column_is_populated(column, value):
+    """Yes/No and number columns count "No" and 0 as filled; a 0-star rating is empty."""
+    if (column or {}).get('datatype') in ('bool', 'int', 'float'):
+        return value is not None
+    return bool(value)
+
+
+def plan_custom_columns(db, book_id, computed, mapping, column_metadata, overwrite_fields):
+    """Split computed custom values for the preview.
+
+    Returns (to write, skipped because already filled, fill-only column keys).
+    overwrite_fields: {metadata_key: True} for mapping rows ticked "Overwrite";
+    other columns are only filled when empty, and stay fill-only at write time.
+    """
+    pending, skipped, fill_only = {}, {}, set()
+    for column_key, value in computed.items():
+        if (overwrite_fields or {}).get(mapping.get(column_key)):
+            pending[column_key] = value
+        elif custom_column_is_populated(column_metadata.get(column_key),
+                                        db.field_for(column_key, book_id)):
+            skipped[column_key] = value
+        else:
+            pending[column_key] = value
+            fill_only.add(column_key)
+    return pending, skipped, fill_only
+
+
+def apply_custom_column_mapping(db, book_id, computed_values, written=None, fill_only=(),
+                                column_metadata=None):
     """
     Writes `computed_values` (compute_custom_column_values()'s output) via
     db.new_api.set_field(). Returns the list of column lookup keys written.
+    A `fill_only` column that was filled since the preview is kept (same
+    re-check as standard fields).
     """
     written = [] if written is None else written
     for column_key, value in computed_values.items():
+        if column_key in fill_only and custom_column_is_populated(
+                (column_metadata or {}).get(column_key), db.field_for(column_key, book_id)):
+            continue
         write_field(db, book_id, column_key, value, written)
     return written

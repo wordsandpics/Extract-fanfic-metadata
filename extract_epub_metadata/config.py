@@ -35,6 +35,9 @@ KEY_COLUMN_MAPPING = 'columnMapping'
 # {story field key: True | 'highest' | 'all'} for column-mapping rows ticked
 # "Also for anthologies" (calibre_fields.ANTHOLOGY_PAIRS).
 KEY_ANTHOLOGY_FIELDS = 'anthologyFields'
+# {story field key: True} for column-mapping rows ticked "Overwrite"; other
+# mapped columns are only filled when empty.
+KEY_CUSTOM_OVERWRITE = 'customOverwrite'
 # Standard metadata: set Published to the earliest story's date for anthologies.
 KEY_ANTHOLOGY_PUBDATE = 'anthologyPubdate'
 
@@ -63,6 +66,7 @@ DEFAULT_STORE_VALUES = {
     KEY_MODE3_ENABLED: False,
     KEY_COLUMN_MAPPING: {},
     KEY_ANTHOLOGY_FIELDS: {},
+    KEY_CUSTOM_OVERWRITE: {},
 
     KEY_ADD_IDENTIFIER: True,
     KEY_PREVIEW: True,

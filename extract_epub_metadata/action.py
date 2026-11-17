@@ -5,11 +5,13 @@ from qt.core import QMenu
 
 from calibre_plugins.extract_epub_metadata.calibre_fields import (
     apply_custom_column_mapping, apply_standard_fields,
-    compute_custom_column_values, compute_standard_fields, plan_standard_fields, write_field,
+    compute_custom_column_values, compute_standard_fields, plan_custom_columns, plan_standard_fields,
+    write_field,
 )
 from calibre_plugins.extract_epub_metadata.common_utils import plugin_icon
 from calibre_plugins.extract_epub_metadata.config import (
     KEY_ADD_IDENTIFIER, KEY_ANTHOLOGY_FIELDS, KEY_ANTHOLOGY_PUBDATE, KEY_COLUMN_MAPPING,
+    KEY_CUSTOM_OVERWRITE,
     KEY_DEST_COLUMN, KEY_MODE1_ENABLED, KEY_MODE2_ENABLED, KEY_MODE2_OVERWRITE,
     KEY_MODE3_ENABLED, KEY_OVERWRITE, KEY_PREVIEW, KEY_SHOW_CONFIRMATION, get_prefs,
 )
@@ -139,9 +141,12 @@ class ExtractEpubMetadataAction(InterfaceAction):
                 db, book_id, compute_standard_fields(fields, prefs[KEY_ANTHOLOGY_PUBDATE]),
                 prefs[KEY_MODE2_OVERWRITE]
             ) if mode2_on else ({}, {})
-            custom_values = (compute_custom_column_values(fields, column_mapping, custom_columns,
-                                                          prefs[KEY_ANTHOLOGY_FIELDS])
-                             if mode3_on else {})
+            custom_values, custom_skipped, custom_fill_only = plan_custom_columns(
+                db, book_id,
+                compute_custom_column_values(fields, column_mapping, custom_columns,
+                                             prefs[KEY_ANTHOLOGY_FIELDS]),
+                column_mapping, custom_columns, prefs[KEY_CUSTOM_OVERWRITE],
+            ) if mode3_on else ({}, {}, set())
             # A Wayback uri must not block adding the original work URL as url.
             uri = (identifiers.get('uri') or '').replace('|', ':')
             identifier_set = bool(identifiers.get('url') or (uri and not is_wayback_url(uri)))
@@ -150,6 +155,7 @@ class ExtractEpubMetadataAction(InterfaceAction):
                 book_id, title, fields, sources, blob, identifier_url=story_url,
                 identifier_already_set=identifier_set, existing_column_value=existing_value,
                 standard_fields=pending, standard_skipped=skipped, custom_column_values=custom_values,
+                custom_skipped=custom_skipped, custom_fill_only=custom_fill_only,
                 saved_write=bool(blob and (prefs[KEY_OVERWRITE] or not existing_value)),
                 identifier_requested=prefs[KEY_ADD_IDENTIFIER],
                 notes=notes,
@@ -159,6 +165,7 @@ class ExtractEpubMetadataAction(InterfaceAction):
 
     def _write_results(self, db, dest_column, results, mode1_on, mode2_on, mode3_on):
         prefs = get_prefs()
+        custom_columns = self.gui.library_view.model().custom_columns if mode3_on else {}
         written = 0
         for result in results:
             if result.error:
@@ -166,7 +173,8 @@ class ExtractEpubMetadataAction(InterfaceAction):
             result.written_fields, result.write_errors = [], []
             stage = 'Saved Metadata'
             try:
-                if mode3_on and dest_column and dest_column in result.custom_column_values:
+                if mode3_on and dest_column and (dest_column in result.custom_column_values or
+                                                  dest_column in result.custom_skipped):
                     stage = 'Column settings'
                     raise ValueError('Saved Metadata column is reserved for raw metadata.')
                 if mode1_on and result.saved_write and not result.fields.get('collectionType'):
@@ -180,7 +188,8 @@ class ExtractEpubMetadataAction(InterfaceAction):
                 if mode3_on:
                     for key, value in result.custom_column_values.items():
                         stage = 'Custom column %s' % key
-                        apply_custom_column_mapping(db, result.book_id, {key: value}, result.written_fields)
+                        apply_custom_column_mapping(db, result.book_id, {key: value}, result.written_fields,
+                                                    result.custom_fill_only, custom_columns)
                 if result.identifier_url and not result.fields.get('collectionType'):
                     stage = 'Story URL identifier'
                     identifiers = db.field_for('identifiers', result.book_id, default_value={}) or {}

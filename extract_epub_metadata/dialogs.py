@@ -42,7 +42,8 @@ class BookResult:
                  identifier_url=None, identifier_already_set=False,
                  existing_column_value=None, standard_fields=None,
                  custom_column_values=None, error=None, standard_skipped=None,
-                 saved_write=None, notes=None, identifier_requested=True):
+                 saved_write=None, notes=None, identifier_requested=True,
+                 custom_skipped=None, custom_fill_only=None):
         self.book_id = book_id
         self.title = title
         self.fields = fields
@@ -55,6 +56,8 @@ class BookResult:
         self.custom_column_values = custom_column_values or {}
         self.error = error
         self.standard_skipped = standard_skipped or {}
+        self.custom_skipped = custom_skipped or {}
+        self.custom_fill_only = set(custom_fill_only or ())
         self.saved_write = bool(blob) if saved_write is None else saved_write
         self.notes = notes or []
         self.identifier_requested = identifier_requested
@@ -91,10 +94,13 @@ class BookResult:
                 lines.append('Existing values kept; these fields will be skipped:')
                 lines.extend(_format_field_dict(self.standard_skipped))
 
-        if self.custom_column_values:
+        if self.custom_column_values or self.custom_skipped:
             lines.append('')
             lines.append('=== Custom Column Mapping ===')
             lines.extend(_format_field_dict(self.custom_column_values))
+            if self.custom_skipped:
+                lines.append('Existing values kept; these columns will be skipped:')
+                lines.extend(_format_field_dict(self.custom_skipped))
 
         if self.blob:
             lines.extend(['', '=== Saved Metadata Column ===',
