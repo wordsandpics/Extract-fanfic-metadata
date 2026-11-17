@@ -61,7 +61,13 @@ count column. Useful whether or not you use FanFicFare.
 
 - **Configure column mapping…:** pick a column for each field you want. Each field
   only lists columns of a suitable type. See [Fields](#fields) below.
-- **Also for anthologies:** some story fields can also fill their column for
+- **Overwrite:** tick a row to replace a value already in that column. Unticked
+  columns are only filled when empty, so values you or FanFicFare entered are kept.
+  All rows are off by default. For example, tick Status to keep it up to date while
+  other columns only fill blanks. A Yes/No column set to "No" and a number set to 0
+  count as filled; a rating of no stars counts as empty. The preview lists the
+  columns that will be kept.
+- **Anthologies too:** some story fields can also fill their column for
   anthologies, with the value for the whole anthology. Tick the ones you want; they are
   off by default. See [Anthologies](#anthologies).
 
@@ -91,8 +97,9 @@ instead.
 from the anthology itself. Word Count is the total across all stories, when every
 story's count is known.
 
-**Also for anthologies:** in **Configure column mapping…**, tick a row to fill that
-column for anthologies too:
+**Anthologies too:** in **Configure column mapping…**, tick a row to fill that
+column for anthologies as well. **Overwrite** works the same way for anthologies as
+for single stories:
 
 | Field | For an anthology |
 |---|---|

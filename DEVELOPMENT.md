@@ -205,7 +205,7 @@ Existing anthology identifiers are preserved. Anthology previews show which valu
 FanFicFare builds its own anthology metadata (`merge_meta_books` in its plugin) by joining
 list fields, keeping the earliest published and latest updated dates, adding up chapters and
 words, and taking status only from the series page. The plugin follows those rules for the
-"Also for anthologies" column-mapping choices (`ANTHOLOGY_PAIRS` in `calibre_fields.py`):
+"Anthologies too" column-mapping choices (`ANTHOLOGY_PAIRS` in `calibre_fields.py`):
 
 - **Status** is the single Completed/In-Progress tag on the outer EPUB. FanFicFare removes the
   stories' own status tags when merging and adds the series page's status, so that tag is the

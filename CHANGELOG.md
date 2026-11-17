@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.4.0] - 2026-11-17
+
+- Custom columns get an **Overwrite** tick per row in the column mapping. Unticked
+  columns are only filled when empty; ticked ones are replaced, as before. All rows are
+  off by default, so **tick the columns you want kept up to date** (for example Status).
+  The preview lists columns kept because they already have a value.
+- "Also for anthologies" in the column mapping is now called **Anthologies too**, and
+  comes after **Overwrite**.
+
 ## [1.3.1] - 2026-11-15
 
 - Read AO3 HTML downloads directly, as Calibre stores them (ZIP, or HTML), with no
