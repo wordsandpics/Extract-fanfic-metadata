@@ -4,7 +4,8 @@
 
 - Custom columns get an **Overwrite** tick per row in the column mapping. Unticked
   columns are only filled when empty; ticked ones are replaced, as before. All rows are
-  off by default, so **tick the columns you want kept up to date** (for example Status).
+  off by default, so **tick the columns you want kept up to date** (for example Status
+  or the Anthology Story Report, which 1.3.0 always refreshed).
   The preview lists columns kept because they already have a value.
 - "Also for anthologies" in the column mapping is now called **Anthologies too**, and
   comes after **Overwrite**.

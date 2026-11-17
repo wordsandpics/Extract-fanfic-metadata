@@ -14,5 +14,5 @@ Choose which custom columns the plugin may overwrite.
 
 - **All Overwrite ticks start off.** Until now custom columns were always replaced. After
   updating, open **Configure column mapping…** and tick the columns you want kept up to
-  date, such as Status.
+  date, such as Status or the Anthology Story Report.
 - "Also for anthologies" is now called **Anthologies too**.

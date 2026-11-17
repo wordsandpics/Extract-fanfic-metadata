@@ -10,8 +10,8 @@ left blank, never guessed.
 ## Write options
 
 You can turn on any combination of the three write options below. Saved Metadata and
-standard metadata each have their own overwrite setting; mapped custom columns are
-always refreshed.
+standard metadata each have their own overwrite setting; custom columns have an
+**Overwrite** tick per column.
 
 ### Save all extracted metadata
 
