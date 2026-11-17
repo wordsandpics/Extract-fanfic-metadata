@@ -140,6 +140,11 @@ with plugin:
             mapping_dialog.show()
             app.processEvents()
             assert mapping_dialog.grab().save(str(folder / 'column-mapping-overwrite.png'))
+            from qt.core import QScrollArea
+            scroll = mapping_dialog.findChild(QScrollArea)
+            scroll.verticalScrollBar().setValue(scroll.verticalScrollBar().maximum())
+            app.processEvents()
+            assert mapping_dialog.grab().save(str(folder / 'column-mapping-overwrite-anthologies.png'))
             mapping_dialog.hide()
         mapping_dialog.close()
         config.custom_overwrite = {'fandoms': True}

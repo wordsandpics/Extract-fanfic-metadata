@@ -234,10 +234,10 @@ class ColumnMappingDialog(QDialog):
             'Choose which column each extracted field should be written '
             'to. Empty or not mapped fields will be skipped. '
             'The Saved Metadata column is reserved for raw metadata.\n'
-            'Tick "Also for anthologies" to fill that column for anthologies too, '
-            'with the value for the whole anthology.\n'
             'Tick "Overwrite" to replace a value already in that column; '
-            'unticked columns are only filled when empty.')
+            'unticked columns are only filled when empty.\n'
+            'Tick "Anthologies too" to fill that column for anthologies as well, '
+            'with the value for the whole anthology.')
         intro.setWordWrap(True)
         layout.addWidget(intro)
 
@@ -257,17 +257,19 @@ class ColumnMappingDialog(QDialog):
         # distinguishing "this plugin's field" from "your column".
         header_field = QLabel('Extracted Field', form_widget)
         header_column = QLabel('Write To Column', form_widget)
-        header_anthology = QLabel('Also for anthologies', form_widget)
+        header_anthology = QLabel('Anthologies too', form_widget)
         header_overwrite = QLabel('Overwrite', form_widget)
         header_overwrite.setToolTip(OVERWRITE_TIP)
-        for header in (header_field, header_column, header_anthology, header_overwrite):
+        for header in (header_field, header_column, header_overwrite, header_anthology):
             font = header.font()
             font.setBold(True)
             header.setFont(font)
         form.addWidget(header_field, 0, 0)
         form.addWidget(header_column, 0, 1)
-        form.addWidget(header_anthology, 0, 2)
-        form.addWidget(header_overwrite, 0, 3)
+        center = Qt.AlignmentFlag.AlignHCenter
+        form.setHorizontalSpacing(max(form.horizontalSpacing(), 0) + 12)
+        form.addWidget(header_overwrite, 0, 2, center)
+        form.addWidget(header_anthology, 0, 3, center)
         self.anthology_controls = {}
         self.overwrite_controls = {}
 
@@ -298,12 +300,13 @@ class ColumnMappingDialog(QDialog):
             control = self._anthology_control(metadata_key, anthology_fields.get(metadata_key),
                                               form_widget)
             if control is not None:
-                form.addWidget(control, row, 2)
+                form.addWidget(control, row, 3,
+                               center if isinstance(control, QCheckBox) else Qt.AlignmentFlag(0))
                 self.anthology_controls[metadata_key] = control
             overwrite = QCheckBox(form_widget)
             overwrite.setChecked(bool(overwrite_fields.get(metadata_key)))
             overwrite.setToolTip(OVERWRITE_TIP)
-            form.addWidget(overwrite, row, 3)
+            form.addWidget(overwrite, row, 2, center)
             self.overwrite_controls[metadata_key] = overwrite
             self.rows.append((metadata_key, combo))
 

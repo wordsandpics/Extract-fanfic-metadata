@@ -33,7 +33,7 @@ KEY_MODE2_OVERWRITE = 'mode2Overwrite'
 KEY_MODE3_ENABLED = 'mode3Enabled'
 KEY_COLUMN_MAPPING = 'columnMapping'
 # {story field key: True | 'highest' | 'all'} for column-mapping rows ticked
-# "Also for anthologies" (calibre_fields.ANTHOLOGY_PAIRS).
+# "Anthologies too" (calibre_fields.ANTHOLOGY_PAIRS).
 KEY_ANTHOLOGY_FIELDS = 'anthologyFields'
 # {story field key: True} for column-mapping rows ticked "Overwrite"; other
 # mapped columns are only filled when empty.

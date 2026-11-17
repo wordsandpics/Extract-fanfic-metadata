@@ -231,7 +231,7 @@ STATUS_COMPLETE_KEY = 'status-C (Completed = checked)'
 # don't need to reach into KEY_KINDS' internals directly.
 ALL_METADATA_KEYS = tuple(KEY_KINDS.keys()) + (STATUS_COMPLETE_KEY,)
 
-# "Also for anthologies": a story field whose column can, when ticked, take
+# "Anthologies too": a story field whose column can, when ticked, take
 # the matching anthology-wide value instead. Values follow FanFicFare's own
 # anthology rules (collections.py). Status is the series status the file
 # records, never worked out from the stories.
@@ -250,7 +250,7 @@ ANTHOLOGY_PAIRS = {
                ANTHOLOGY_RATING_ALL: 'collectionRatings'},
 }
 
-# Hover help for each "Also for anthologies" control (wording matches SETTINGS.md).
+# Hover help for each "Anthologies too" control (wording matches SETTINGS.md).
 ANTHOLOGY_HELP = {
     'status': 'For anthologies: the series status the file records ("Completed" or '
               '"In-Progress"). Left empty when none is recorded; never worked out from the stories.',
@@ -535,7 +535,7 @@ def compute_custom_column_values(fields, mapping, column_metadata, anthology_cho
     to preview what Mode 3 would write and, via apply_custom_column_mapping,
     to actually write it.
     anthology_choices: {metadata_key: True | 'highest' | 'all'} for rows
-        ticked "Also for anthologies" (see ANTHOLOGY_PAIRS).
+        ticked "Anthologies too" (see ANTHOLOGY_PAIRS).
     """
     computed = {}
     for column_key, metadata_key in mapping.items():
