@@ -126,6 +126,27 @@ with plugin:
         del config.column_mapping['#saved']
         config._refresh_saved_columns()
         config.dest_column.setCurrentIndex(config.dest_column.findData('#saved'))
+        from calibre_plugins.extract_epub_metadata.dialogs import ColumnMappingDialog
+        mapping_dialog = ColumnMappingDialog(config, columns, config.column_mapping, '#saved',
+                                             config.anthology_fields, {'numWords': True})
+        assert mapping_dialog.overwrite_controls['numWords'].isChecked()
+        assert not any(c.isChecked() for k, c in mapping_dialog.overwrite_controls.items() if k != 'numWords')
+        mapping_dialog.overwrite_controls['numWords'].setChecked(False)
+        mapping_dialog.overwrite_controls['fandoms'].setChecked(True)
+        assert mapping_dialog.overwrite_fields() == {'fandoms': True}
+        if os.environ.get('EXTRACT_METADATA_SCREENSHOTS'):
+            folder = Path(os.environ['EXTRACT_METADATA_SCREENSHOTS'])
+            folder.mkdir(parents=True, exist_ok=True)
+            mapping_dialog.show()
+            app.processEvents()
+            assert mapping_dialog.grab().save(str(folder / 'column-mapping-overwrite.png'))
+            mapping_dialog.hide()
+        mapping_dialog.close()
+        config.custom_overwrite = {'fandoms': True}
+        config.save_settings()
+        assert get_prefs()['customOverwrite'] == {'fandoms': True}
+        plugin_prefs[STORE_NAME] = prefs
+        print('PASS: column-mapping Overwrite ticks load, change and save.')
         preview = PreviewDialog(gui, results)
         screenshots = os.environ.get('EXTRACT_METADATA_SCREENSHOTS')
         if screenshots:

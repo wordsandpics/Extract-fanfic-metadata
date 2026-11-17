@@ -288,6 +288,7 @@ class ConfigWidget(QWidget):
         self.mode3_group = group
         self.column_mapping = dict(prefs[KEY_COLUMN_MAPPING])
         self.anthology_fields = dict(prefs[KEY_ANTHOLOGY_FIELDS])
+        self.custom_overwrite = dict(prefs[KEY_CUSTOM_OVERWRITE])
 
         subtext = _subtext_label(
             "(Map extracted data directly to your own columns - useful if "
@@ -308,10 +309,12 @@ class ConfigWidget(QWidget):
     def _open_column_mapping(self, custom_columns):
         dialog = ColumnMappingDialog(self, custom_columns, self.column_mapping,
                                      reserved_column=self.dest_column.currentData(),
-                                     anthology_fields=self.anthology_fields)
+                                     anthology_fields=self.anthology_fields,
+                                     overwrite_fields=self.custom_overwrite)
         if dialog.exec() == ColumnMappingDialog.DialogCode.Accepted:
             self.column_mapping = dialog.mapping()
             self.anthology_fields = dialog.anthology_fields()
+            self.custom_overwrite = dialog.overwrite_fields()
             self._update_mode3_summary()
             self._refresh_saved_columns()
 
@@ -330,6 +333,7 @@ class ConfigWidget(QWidget):
         prefs[KEY_MODE3_ENABLED] = self.mode3_group.isChecked()
         prefs[KEY_COLUMN_MAPPING] = self.column_mapping
         prefs[KEY_ANTHOLOGY_FIELDS] = self.anthology_fields
+        prefs[KEY_CUSTOM_OVERWRITE] = self.custom_overwrite
         prefs[KEY_ANTHOLOGY_PUBDATE] = self.anthology_pubdate.isChecked()
         prefs[KEY_ADD_IDENTIFIER] = self.add_identifier.isChecked()
         prefs[KEY_PREVIEW] = self.preview.isChecked()

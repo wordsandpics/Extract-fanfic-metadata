@@ -205,6 +205,9 @@ class PreviewDialog(QDialog):
         return selected
 
 
+OVERWRITE_TIP = "Replace a value already in this column. Off: only fill it when it's empty."
+
+
 class ColumnMappingDialog(QDialog):
     """Mode 3 config: one row per recoverable metadata field (as a static
     label, with a tooltip explaining it), each with a dropdown of the
@@ -213,11 +216,12 @@ class ColumnMappingDialog(QDialog):
     compatible column in this library aren't shown."""
 
     def __init__(self, gui, custom_columns, current_mapping, reserved_column=None,
-                 anthology_fields=None):
+                 anthology_fields=None, overwrite_fields=None):
         QDialog.__init__(self, gui)
         self.setWindowTitle('Extract Fanfic Metadata -- Custom Column Mapping')
-        self.resize(720, 460)
+        self.resize(800, 460)
         anthology_fields = anthology_fields or {}
+        overwrite_fields = overwrite_fields or {}
 
         # current_mapping is {column_key: metadata_key} (matches how it's
         # stored/consumed elsewhere) -- invert it once for O(1) lookup of
@@ -231,7 +235,9 @@ class ColumnMappingDialog(QDialog):
             'to. Empty or not mapped fields will be skipped. '
             'The Saved Metadata column is reserved for raw metadata.\n'
             'Tick "Also for anthologies" to fill that column for anthologies too, '
-            'with the value for the whole anthology.')
+            'with the value for the whole anthology.\n'
+            'Tick "Overwrite" to replace a value already in that column; '
+            'unticked columns are only filled when empty.')
         intro.setWordWrap(True)
         layout.addWidget(intro)
 
@@ -240,6 +246,8 @@ class ColumnMappingDialog(QDialog):
         form_widget = QWidget(scroll)
         form = QGridLayout(form_widget)
         form.setColumnStretch(1, 1)
+        margins = form.contentsMargins()
+        form.setContentsMargins(margins.left(), margins.top(), margins.right() + 16, margins.bottom())
 
         # The dropdown lists every column compatible by *datatype* alone
         # (calibre_fields.py::compatible_columns_for_key doesn't try to
@@ -250,14 +258,18 @@ class ColumnMappingDialog(QDialog):
         header_field = QLabel('Extracted Field', form_widget)
         header_column = QLabel('Write To Column', form_widget)
         header_anthology = QLabel('Also for anthologies', form_widget)
-        for header in (header_field, header_column, header_anthology):
+        header_overwrite = QLabel('Overwrite', form_widget)
+        header_overwrite.setToolTip(OVERWRITE_TIP)
+        for header in (header_field, header_column, header_anthology, header_overwrite):
             font = header.font()
             font.setBold(True)
             header.setFont(font)
         form.addWidget(header_field, 0, 0)
         form.addWidget(header_column, 0, 1)
         form.addWidget(header_anthology, 0, 2)
+        form.addWidget(header_overwrite, 0, 3)
         self.anthology_controls = {}
+        self.overwrite_controls = {}
 
         self.rows = []
         custom_columns = {k: v for k, v in custom_columns.items() if k != reserved_column}
@@ -288,6 +300,11 @@ class ColumnMappingDialog(QDialog):
             if control is not None:
                 form.addWidget(control, row, 2)
                 self.anthology_controls[metadata_key] = control
+            overwrite = QCheckBox(form_widget)
+            overwrite.setChecked(bool(overwrite_fields.get(metadata_key)))
+            overwrite.setToolTip(OVERWRITE_TIP)
+            form.addWidget(overwrite, row, 3)
+            self.overwrite_controls[metadata_key] = overwrite
             self.rows.append((metadata_key, combo))
 
         form.setRowStretch(len(self.rows) + 1, 1)
@@ -335,6 +352,10 @@ class ColumnMappingDialog(QDialog):
             elif control.isChecked():
                 result[metadata_key] = True
         return result
+
+    def overwrite_fields(self):
+        return {metadata_key: True for metadata_key, control in self.overwrite_controls.items()
+                if control.isChecked()}
 
     def mapping(self):
         result = {}
