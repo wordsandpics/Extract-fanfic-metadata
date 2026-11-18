@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.4.0] - 2026-11-17
+## [1.4.0] - 2026-11-18
 
 - Custom columns get an **Overwrite** tick per row in the column mapping. Unticked
   columns are only filled when empty; ticked ones are replaced, as before. All rows are
