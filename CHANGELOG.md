@@ -9,6 +9,7 @@
   The preview lists columns kept because they already have a value.
 - "Also for anthologies" in the column mapping is now called **Anthologies too**, and
   comes after **Overwrite**.
+- The column mapping's headings stay in place while you scroll.
 
 ## [1.3.1] - 2026-11-15
 

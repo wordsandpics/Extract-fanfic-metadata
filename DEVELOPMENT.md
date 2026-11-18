@@ -221,6 +221,14 @@ words, and taking status only from the series page. The plugin follows those rul
 
 Rows that aren't ticked stay empty for anthologies. Single stories ignore the ticks.
 
+### Custom-column Overwrite
+
+`customOverwrite` holds `{field key: True}` for rows ticked **Overwrite**. The preview
+(`plan_custom_columns` in `calibre_fields.py`) skips unticked columns that already have a
+value; a column it plans to fill is checked again at write time and kept if it was filled
+in the meantime. Yes/No and number columns count "No" and 0 as filled; a rating of no
+stars, empty text and empty lists count as empty. Anthology columns follow the same rule.
+
 ### Anthology Story Report
 
 The `collectionStoryReport` field holds `format_summary()`'s text: a first line of the form
@@ -263,5 +271,6 @@ For a real Calibre check, set `CALIBRE_CONFIG_DIRECTORY` to a configuration in a
 `extract_epub_metadata/` there, then run `tests/calibre_smoke.py` using
 `calibre-debug -e`. Set `QT_QPA_PLATFORM=offscreen` to keep its windows off screen.
 The harness refuses to run against a regular configuration and creates a temporary
-library. It checks EPUB and TXT previews, database writes, and FanFicFare imports.
+library. It checks EPUB and TXT previews, database writes, FanFicFare imports, custom-column
+Overwrite ticks, and that the column-mapping headings stay aligned when scrolled or resized.
 Set `EXTRACT_METADATA_SCREENSHOTS` to an output folder to save preview screenshots.

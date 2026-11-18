@@ -16,3 +16,4 @@ Choose which custom columns the plugin may overwrite.
   updating, open **Configure column mapping…** and tick the columns you want kept up to
   date, such as Status or the Anthology Story Report.
 - "Also for anthologies" is now called **Anthologies too**.
+- The column mapping's headings stay in place while you scroll.
