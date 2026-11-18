@@ -1,6 +1,6 @@
 from qt.core import (
     QAbstractItemView, QCheckBox, QComboBox, QDialog, QDialogButtonBox,
-    QGridLayout, QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QPlainTextEdit,
+    QGridLayout, QLabel, QListWidget, QListWidgetItem, QPlainTextEdit,
     QEvent, QPoint, QScrollArea, QSplitter, Qt, QVBoxLayout, QWidget,
 )
 

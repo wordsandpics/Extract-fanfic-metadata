@@ -34,6 +34,15 @@ class AnthologyReportMigrationTest(unittest.TestCase):
         self.assertFalse(changed)
         self.assertEqual(again['columnMapping'], {'#words': 'numWords'})
 
+    def test_old_overwrite_setting_ticks_the_report_overwrite(self):
+        new, _ = migrate_anthology_report(dict(OLD))
+        self.assertEqual(new['customOverwrite'], {'collectionStoryReport': True})
+        new, _ = migrate_anthology_report(dict(OLD, anthologyOverwrite=False))
+        self.assertNotIn('customOverwrite', new)
+        # Not carried over when the report column could not be mapped.
+        new, _ = migrate_anthology_report(dict(OLD, anthologyDestColumn='#saved'))
+        self.assertNotIn('customOverwrite', new)
+
     def test_custom_columns_switched_on_only_when_report_is_the_only_mapping(self):
         only = dict(OLD, mode3Enabled=False, columnMapping={})
         new, _ = migrate_anthology_report(only)

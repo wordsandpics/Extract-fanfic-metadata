@@ -5,10 +5,9 @@ Anthology Story Report field (format_summary, whose text users' Calibre
 templates parse -- keep it stable). Outer bundle status can differ from individual story
 status; this module recovers each story's own metadata.
 
-Verified directly against a real epubmerge-produced anthology (7 fics,
-fics 1-6 Completed, fic 7 In-Progress) via calibre-debug and direct
-inspection -- see the plan's "Extract story status from anthology"
-section for the full trail. Deliberately NOT reusing
+Checked against a real epubmerge-produced anthology (7 fics, fics 1-6
+Completed, fic 7 In-Progress); tests/fixtures/anthology-mixed-status.epub
+is a synthetic copy of that layout. Deliberately NOT reusing
 extractors/fff_titlepage.py's extract_fff_titlepage() as-is: that function
 returns on the *first* spine match, which is exactly the bug this module
 exists to avoid. It reuses that function's underlying <b>label</b>:value

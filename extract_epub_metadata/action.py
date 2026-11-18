@@ -28,7 +28,8 @@ class ExtractEpubMetadataAction(InterfaceAction):
     name = 'Extract Epub Metadata'
     action_spec = (
         'Extract Metadata', None,
-        'Extract metadata from selected EPUBs, TXT archive headers or AO3 PDFs into Saved Metadata and/or standard/custom Calibre fields',
+        'Extract metadata from the selected books (EPUB, HTML, PDF or TXT) into Saved Metadata and/or '
+        'standard/custom Calibre fields',
         (),
     )
     action_type = 'current'

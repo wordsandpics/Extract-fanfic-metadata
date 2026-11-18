@@ -241,6 +241,7 @@ Until 1.3.0 a separate "Extract story status from anthology" action wrote this r
 its own settings tab. `prefs_migration.py` maps that action's column to the field once and
 drops its settings; it leaves the mapping alone if the column is already used or is the Saved
 Metadata column, and switches on custom-column updates only when the report is the sole mapping.
+If the old action's overwrite setting was on, the report's `customOverwrite` tick starts on.
 
 ## Known limitations
 

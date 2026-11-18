@@ -5,12 +5,12 @@ per-site vocabulary, and derives a handful of cheap extra fields FFF itself
 also computes at read-time. Produces the `fields` dict serialize.py turns
 into the Saved Metadata column value.
 
-Tier order (per the plan): OPF baseline, FFF title page, AO3 front matter,
-fanfiction.net's own native info page (as scraped verbatim by WebToEpub),
-generic link-scan fallback. In practice tiers 2/3/3b are mutually
-exclusive (a given EPUB has at most one of FFF's title page, AO3's native
-preface, or fanfiction.net's native info page), so their relative order
-rarely matters -- OPF is kept first because it's the most universally
+Readers (extract_fields): OPF baseline, then anthology detection, FFF title
+page, FicLab, ficdownloader, AO3 front matter, fanfiction.net's native info
+page (as scraped verbatim by WebToEpub), PDF-conversion headers and a
+generic story-URL link scan; see extract_fields for how they are merged.
+A given EPUB usually matches only one of the layout-specific readers, so
+their relative order rarely matters -- OPF is kept first because it's the most universally
 reliable source for title/authors/language/description when present.
 """
 import datetime

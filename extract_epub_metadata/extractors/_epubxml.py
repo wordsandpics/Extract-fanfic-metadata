@@ -13,7 +13,6 @@ import posixpath
 import xml.etree.ElementTree as ET
 from zipfile import ZipFile
 
-OPF_NS = 'http://www.idpf.org/2007/opf'
 
 
 def local_name(tag):

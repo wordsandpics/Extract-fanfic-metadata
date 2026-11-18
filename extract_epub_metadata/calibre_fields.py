@@ -7,8 +7,7 @@ Metadata Column" action entirely.
 This deliberately hardcodes FanFicFare's own *default* AO3 field-
 composition rules (plugin-defaults.ini) rather than reimplementing its
 general personal.ini/replace_metadata templating engine (~1700 lines
-across fanficfare/story.py + fanficfare/configurable.py) -- see the plan's
-"Explicit non-goals" section. It will never have FFF's full per-site
+across fanficfare/story.py + fanficfare/configurable.py). It will never have FFF's full per-site
 customizability; it's a simpler no-round-trip-needed path for the common
 case, not a full FFF replacement.
 

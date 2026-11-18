@@ -6,7 +6,8 @@
   columns are only filled when empty; ticked ones are replaced, as before. All rows are
   off by default, so **tick the columns you want kept up to date** (for example Status
   or the Anthology Story Report, which 1.3.0 always refreshed).
-  The preview lists columns kept because they already have a value.
+  The preview lists columns kept because they already have a value. When upgrading from
+  1.2.x or earlier with the anthology report set to overwrite, its tick starts on.
 - "Also for anthologies" in the column mapping is now called **Anthologies too**, and
   comes after **Overwrite**.
 - The column mapping's headings stay in place while you scroll.

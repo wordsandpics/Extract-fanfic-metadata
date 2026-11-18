@@ -12,8 +12,8 @@ class ExtractEpubMetadataBase(InterfaceActionBase):
 
     name = 'Extract Fanfic Metadata'
     description = (
-        'Recover metadata from fanfiction EPUBs, TXT archive headers or AO3 PDFs already in Calibre; save it '
-        'for FanFicFare or write standard and custom fields.'
+        'Recover metadata stored in downloaded fanfiction (EPUB, HTML, PDF and TXT) already in Calibre; '
+        'save it for FanFicFare or write standard and custom fields.'
     )
     supported_platforms = ['windows', 'osx', 'linux']
     author = 'wordsandpics'

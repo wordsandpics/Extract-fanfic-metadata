@@ -15,7 +15,8 @@ def migrate_anthology_report(options):
     The column is left unmapped when it is already used by another field or
     is the Saved Metadata column. "Update custom columns" is switched on only
     when the report is the sole mapping, so no other column starts being
-    written unexpectedly.
+    written unexpectedly. If the old action was set to overwrite, the
+    report's Overwrite tick (1.4.0) starts on, so the report keeps refreshing.
     """
     if options.get(MIGRATED_FLAG):
         return options, False
@@ -27,6 +28,10 @@ def migrate_anthology_report(options):
         mapping[dest] = REPORT_KEY
         if not options.get('mode3Enabled') and len(mapping) == 1:
             migrated['mode3Enabled'] = True
+        if options.get('anthologyOverwrite'):
+            overwrite = dict(options.get('customOverwrite') or {})
+            overwrite[REPORT_KEY] = True
+            migrated['customOverwrite'] = overwrite
     migrated['columnMapping'] = mapping
     for key in OLD_ANTHOLOGY_KEYS:
         migrated.pop(key, None)
