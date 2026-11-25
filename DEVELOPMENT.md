@@ -27,7 +27,28 @@ Other sites use Category for their own labels, so it stays Category only.
 
 Series, Series URL and Author URL are read from the title page too. Shared
 FanFicFare files may record them nowhere else. Series is used only in
-FanFicFare's `Name [N]` form, and the URLs only when they are links.
+FanFicFare's `Name [N]` form, and the URLs only when they are links. FanFicFare writes
+the Series line as a link, so its text is the series and its address is the series link,
+unless the page also has a Series URL line.
+
+FanFicFare can add AO3 lines to the title page (its `extra_titlepage_entries` setting).
+Chapters/Total Chapters gives the chapter count, and the total when it is a number
+(`3/?` leaves the total empty). Total Chapters, AO3 Categories and Freeform Tags are read
+too. Comments, Kudos, Hits and Bookmarks are live counts and are ignored. See
+`fff-ao3-extra-entries-complete.epub` and `fff-ao3-extra-entries-ongoing.epub`.
+
+When FanFicFare was logged in to AO3, it can also write "I Subscribed", "I Bookmarked Story"
+and "I Marked for Later" (the `subscribed`, `bookmarked` and `markedforlater` entries, listed
+in `extra_titlepage_entries`; `add_to_extra_valid_entries` alone does not print them). Each is
+`True` or `False` as of the download. They are kept as yes/no and offered only for Yes/No
+columns. A missing line is unknown and writes nothing; any other value is ignored. They are
+not recovered for anthologies. See `fff-ao3-logged-in-entries.epub`.
+
+Title-page labels are not read from inside the summary (the block right after
+`<b>Summary:</b>`), and the first line with a given label wins. Anthology story title pages
+follow the same two rules, and take the chapter count from Chapters/Total Chapters when
+there is no Chapters line. An `m.fanfiction.net` link counts as site `fanfiction.net`; the
+link itself is kept as written.
 
 ### ficdownloader
 

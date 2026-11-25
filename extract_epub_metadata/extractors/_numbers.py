@@ -2,6 +2,8 @@
 import re
 
 COUNT_PATTERN = r'[0-9]+(?:,[0-9]{3}|[ \u00a0\u2007\u2009\u202f][0-9]{3})*'
+# "7/12", or "3/?" while the final chapter count isn't known.
+CHAPTERS_SLASH_RE = re.compile(r'^\s*(\d+)\s*/\s*(\d+|\?)\s*$')
 
 
 def parse_count(value):

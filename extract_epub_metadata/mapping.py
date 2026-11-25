@@ -19,7 +19,7 @@ from html import escape
 from zipfile import ZipFile
 
 from .collections import extract_collection, primary_url
-from .extractors._numbers import parse_count
+from .extractors._numbers import CHAPTERS_SLASH_RE, parse_count
 from .extractors._text import html_to_text
 
 from .extractors.ao3_frontmatter import extract_ao3_frontmatter
@@ -88,7 +88,24 @@ TITLEPAGE_LABEL_TO_KEY = {
     'series': 'series',
     'series url': 'seriesUrl',
     'author url': 'authorUrl',
+    # FanFicFare's own labels for the AO3 entries a user can switch on with
+    # extra_titlepage_entries (confirmed against fanficfare/defaults.ini and
+    # tests/fixtures/fff-ao3-extra-entries-complete.epub). "Chapters/Total
+    # Chapters" is n/total, handled with the plain chapter count below.
+    'chapters/total chapters': 'numChapters',
+    'total chapters': 'numChaptersTotal',
+    'ao3 categories': 'ao3categories',
+    'freeform tags': 'freeformtags',
+    # Yes/no lines FanFicFare writes only when it was logged in to AO3 and the
+    # entry was listed in extra_titlepage_entries (labels from defaults.ini).
+    'i subscribed': 'subscribed',
+    'i bookmarked story': 'bookmarked',
+    'i marked for later': 'markedforlater',
 }
+
+# True/False title-page entries. A snapshot from download day; a missing line
+# means unknown, so it is never turned into "no".
+BOOLEAN_KEYS = {'subscribed', 'bookmarked', 'markedforlater'}
 
 # Deliberately no entries for 'reviews'/'favs'/'follows' -- fanfiction.net's
 # live engagement stats, same "don't fabricate a value only a live fetch
@@ -120,11 +137,6 @@ _FFNET_STORY_ID_RE = re.compile(r'/s/(\d+)')
 # shape as _PARA_LABEL_RE in fff_titlepage.py, just applied per-segment
 # here rather than per-<p>.
 _COMPOSITE_SEGMENT_RE = re.compile(r'^([A-Za-z][\w \-/]{0,30}):\s*(.+)$')
-# Total is often "?" for an ongoing fic whose final chapter count isn't
-# known yet (covered by tests/fixtures/titlepage-unknown-total-41.epub's
-# "Chapters: 41/?") -- status can't be derived from
-# that, but the current chapter count is still perfectly recoverable.
-_CHAPTERS_SLASH_RE = re.compile(r'^\s*(\d+)\s*/\s*(\d+|\?)\s*$')
 # FFF's own default per-key date formats differ: dateCreated ("Packaged")
 # defaults to "%Y-%m-%d %H:%M:%S" (space-separated, with time), while
 # datePublished/dateUpdated default to date-only "%Y-%m-%d". Both are also
@@ -227,8 +239,10 @@ def _map_titlepage(titlepage):
         # the same way ao3_frontmatter.py's _parse_stats() already does
         # for AO3's own preface -- an explicit "Status:" line elsewhere on
         # the page still wins via setdefault, regardless of scan order.
+        # A "?" total (tests/fixtures/titlepage-unknown-total-41.epub's
+        # "Chapters: 41/?") gives no status, but the current count still counts.
         if key == 'numChapters':
-            m = _CHAPTERS_SLASH_RE.match(str(value))
+            m = CHAPTERS_SLASH_RE.match(str(value))
             if m:
                 n, total = m.group(1), m.group(2)
                 result['numChapters'] = n
@@ -254,6 +268,12 @@ def _map_titlepage(titlepage):
             result['status'] = ('Completed' if str(value).strip().lower().startswith('complete')
                                  else 'In-Progress')
             continue
+        if key in BOOLEAN_KEYS:
+            # Only FanFicFare's own "True"/"False"; anything else is left out.
+            word = str(value).strip().lower()
+            if word in ('true', 'false'):
+                result[key] = word == 'true'
+            continue
         if key == 'series' and not _TITLEPAGE_SERIES_RE.match(str(value).strip()):
             # Only FFF's own "Name [index]" form; anything else is left out.
             continue
@@ -261,6 +281,11 @@ def _map_titlepage(titlepage):
                 u.startswith('http') for u in re.split(r',\s*', str(value).strip())):
             continue
         result[key] = _coerce_for_key(key, value)
+    # A linked Series line also carries the series page; an explicit
+    # "Series URL" line, when present, wins.
+    series_link = (titlepage.get('label_links') or {}).get('Series')
+    if 'series' in result and series_link:
+        result.setdefault('seriesUrl', series_link)
     return result
 
 
@@ -490,6 +515,9 @@ def _derive_fields(fields):
         m = _WORKS_URL_RE.search(story_url) or _FFNET_STORY_ID_RE.search(story_url)
         if m:
             fields['storyId'] = m.group(1)
+
+    if site == 'm.fanfiction.net':
+        site = fields['site'] = 'fanfiction.net'
 
     if site and site in SITE_ABBREV:
         fields.setdefault('siteabbrev', SITE_ABBREV[site])

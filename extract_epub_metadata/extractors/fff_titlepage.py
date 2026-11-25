@@ -38,7 +38,8 @@ scanning continues to the next spine item instead.
 """
 import re
 
-from ._epubxml import find_all, find_first, parse_opf, parse_xhtml, spine_item_paths, text_content
+from ._epubxml import (
+    find_all, find_first, local_name, parse_opf, parse_xhtml, spine_item_paths, text_content)
 
 # "Label: value" as the entire text of a <p>, label kept short so this
 # doesn't misfire on ordinary prose (e.g. a summary paragraph) that
@@ -52,6 +53,26 @@ def _is_titlepage(root, path):
     lowered = path.lower()
     return ('fff_titlepage' in cls.split() or 'title_page' in lowered
             or 'titlepage' in lowered or 'introduction' in lowered)
+
+
+_SUMMARY_BLOCKS = {'div', 'blockquote', 'p', 'ul', 'ol', 'dl', 'table'}
+
+
+def summary_elements(root):
+    """Every element inside the title page's summary. That text is the author's
+    own, so a bold "Status:" or "Warnings:" there is not a title-page fact.
+    FanFicFare puts it in the block right after <b>Summary:</b>."""
+    found = set()
+    for parent in root.iter():
+        children = list(parent)
+        for i, child in enumerate(children):
+            if (local_name(child.tag) != 'b' or (child.tail or '').strip()
+                    or text_content(child).strip().rstrip(':').strip().lower() != 'summary'):
+                continue
+            block = next((c for c in children[i + 1:] if local_name(c.tag) != 'br'), None)
+            if block is not None and local_name(block.tag) in _SUMMARY_BLOCKS:
+                found.update(block.iter())
+    return found
 
 
 def extract_fff_titlepage(zf):
@@ -80,20 +101,41 @@ def extract_fff_titlepage(zf):
         # <b>Label:</b> value<br/> -- value is captured in the <b> tag's
         # .tail text (the text immediately following the closing </b>).
         entries = {}
+        links = {}
+        # FanFicFare writes the Series value as a link, not plain text:
+        # <b>Series:</b> <a class='serieslink' href='...'>Name [N]</a><br />
+        # so for that label alone, the link that follows <b> supplies the value.
+        following = {}
+        for parent in root.iter():
+            children = list(parent)
+            following.update(zip(children, children[1:]))
+        summary = summary_elements(root)
         for b in find_all(root, 'b'):
+            if b in summary:
+                continue
             label = text_content(b).strip()
             if label.endswith(':'):
                 label = label[:-1].strip()
             if not label:
                 continue
             value = (b.tail or '').strip()
+            if not value and label.lower() == 'series':
+                link = following.get(b)
+                href = ((link.get('href') or '').strip() if link is not None else '')
+                if link is not None and local_name(link.tag) == 'a' and href.startswith('http'):
+                    value = text_content(link).strip()
+                    if value:
+                        links[label] = href
             if value:
-                entries[label] = value
+                # The first line wins; FanFicFare writes each label once.
+                entries.setdefault(label, value)
 
         # Plainer <p>Label: value</p> variant -- only fills gaps, in case
         # a page mixes both styles (unseen in practice, but cheap to be
         # tolerant of).
         for p in find_all(root, 'p'):
+            if p in summary:
+                continue
             text = text_content(p).strip()
             m = _PARA_LABEL_RE.match(text)
             if not m:
@@ -104,6 +146,8 @@ def extract_fff_titlepage(zf):
 
         if entries:
             result['label_entries'] = entries
+        if links:
+            result['label_links'] = links
 
         if result:
             return result

@@ -145,6 +145,9 @@ what Calibre calls it when you create a column.
 | Language Code | Short language code, e.g. "en". | Text |
 | Status | "Completed" or "In-Progress". | Text |
 | Completed? (yes/no) | Yes if the status is "Completed", no otherwise. | Yes/no |
+| Subscribed? (yes/no) | Whether the person who downloaded the story was subscribed to it on AO3 at the time. Only filled when the FanFicFare title page has an "I Subscribed" line; otherwise left blank. Not filled for anthologies. | Yes/no |
+| Bookmarked? (yes/no) | Whether they had bookmarked it on AO3 at the time. Only filled when the title page has an "I Bookmarked Story" line; otherwise left blank. Not filled for anthologies. | Yes/no |
+| Marked for Later? (yes/no) | Whether they had marked it for later on AO3 at the time. Only filled when the title page has an "I Marked for Later" line; otherwise left blank. Not filled for anthologies. | Yes/no |
 | Series | First series this work is part of, as "Name [N]". A Series column splits out the number itself. | Text |
 | Series URL | Link to that series' page. | Text |
 

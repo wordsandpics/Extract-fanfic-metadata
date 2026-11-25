@@ -2855,5 +2855,145 @@
       "chapterslashtotal": "2/2",
       "status": "Completed"
     }
+  },
+  {
+    "name": "fff-ao3-extra-entries-complete.epub",
+    "kind": "fff_extras",
+    "fields": {
+      "title": "Synthetic FFF AO3 Extra Entries Complete",
+      "author": [
+        "TestWriter68"
+      ],
+      "langcode": "en",
+      "description": "Synthetic fff-ao3-extra-entries-complete summary paragraph one.\n\nSynthetic paragraph two ends here.",
+      "storyUrl": "https://archiveofourown.org/works/98000701",
+      "category": [
+        "TestFandom68a",
+        "TestFandom68b"
+      ],
+      "freeformtags": [
+        "TestTag68a",
+        "TestTag68b",
+        "TestTag68c"
+      ],
+      "ao3categories": [
+        "F/M",
+        "M/M"
+      ],
+      "characters": [
+        "TestCharacter68a",
+        "TestCharacter68b"
+      ],
+      "ships": [
+        "TestPair68/TestPartner68"
+      ],
+      "language": "English",
+      "status": "Completed",
+      "datePublished": "2023-02-14T00:00:00",
+      "dateUpdated": "2023-05-30T00:00:00",
+      "dateCreated": "2023-06-01T09:15:42",
+      "rating": "Mature",
+      "warnings": [
+        "No Archive Warnings Apply"
+      ],
+      "numChapters": 7,
+      "numChaptersTotal": 7,
+      "numWords": 48210,
+      "series": "Synthetic Linked Series [2]",
+      "seriesUrl": "https://archiveofourown.org/series/98000703",
+      "authorUrl": [
+        "https://archiveofourown.org/users/TestWriter68/pseuds/TestWriter68"
+      ]
+    }
+  },
+  {
+    "name": "fff-ao3-extra-entries-ongoing.epub",
+    "kind": "fff_extras",
+    "fields": {
+      "title": "Synthetic FFF AO3 Extra Entries Ongoing",
+      "author": [
+        "TestWriter69"
+      ],
+      "langcode": "en",
+      "description": "Synthetic fff-ao3-extra-entries-ongoing summary paragraph one.\n\nSynthetic paragraph two ends here.",
+      "storyUrl": "https://archiveofourown.org/works/98000702",
+      "category": [
+        "TestFandom69"
+      ],
+      "freeformtags": [
+        "TestTag69a",
+        "TestTag69b"
+      ],
+      "ao3categories": [
+        "Gen"
+      ],
+      "characters": [
+        "TestCharacter69a"
+      ],
+      "ships": [
+        "TestPair69 & TestPartner69"
+      ],
+      "language": "English",
+      "status": "In-Progress",
+      "datePublished": "2024-03-03T00:00:00",
+      "dateUpdated": "2024-04-20T00:00:00",
+      "dateCreated": "2024-04-22T18:30:05",
+      "rating": "General Audiences",
+      "warnings": [
+        "Creator Chose Not To Use Archive Warnings"
+      ],
+      "numChapters": 3,
+      "numWords": 9120,
+      "authorUrl": [
+        "https://archiveofourown.org/users/TestWriter69/pseuds/TestWriter69"
+      ]
+    }
+  },
+  {
+    "name": "fff-ao3-logged-in-entries.epub",
+    "kind": "fff_extras",
+    "fields": {
+      "title": "Synthetic FFF AO3 Logged In Entries",
+      "author": [
+        "TestWriter70"
+      ],
+      "langcode": "en",
+      "description": "Synthetic fff-ao3-logged-in-entries summary paragraph one.\n\nSynthetic paragraph two ends here.",
+      "storyUrl": "https://archiveofourown.org/works/98000704",
+      "category": [
+        "TestFandom70"
+      ],
+      "freeformtags": [
+        "TestTag70a",
+        "TestTag70b"
+      ],
+      "ao3categories": [
+        "F/F"
+      ],
+      "characters": [
+        "TestCharacter70a"
+      ],
+      "ships": [
+        "TestPair70/TestPartner70"
+      ],
+      "language": "English",
+      "status": "Completed",
+      "datePublished": "2023-08-09T00:00:00",
+      "dateUpdated": "2023-09-21T00:00:00",
+      "dateCreated": "2023-09-23T14:05:11",
+      "rating": "Teen And Up Audiences",
+      "warnings": [
+        "No Archive Warnings Apply"
+      ],
+      "numChapters": 4,
+      "numChaptersTotal": 4,
+      "numWords": 21500,
+      "subscribed": true,
+      "bookmarked": false,
+      "markedforlater": true,
+      "authorUrl": [
+        "https://archiveofourown.org/users/TestWriter70/pseuds/TestWriter70"
+      ]
+    }
   }
 ]

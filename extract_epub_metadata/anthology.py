@@ -27,7 +27,8 @@ from urllib.parse import urlsplit
 from zipfile import ZipFile
 
 from .extractors._epubxml import find_all, find_first, parse_opf, parse_xhtml, spine_item_paths, text_content
-from .extractors._numbers import parse_count
+from .extractors._numbers import CHAPTERS_SLASH_RE, parse_count
+from .extractors.fff_titlepage import summary_elements
 
 _DATE_FORMATS = ('%Y-%m-%d %H:%M:%S', '%Y-%m-%d')
 
@@ -87,7 +88,10 @@ def _scrape_title_page(root):
             if title_text:
                 result['title'] = title_text
 
+    summary = summary_elements(root)
     for b in find_all(root, 'b'):
+        if b in summary:
+            continue
         label = text_content(b).strip()
         if label.endswith(':'):
             label = label[:-1].strip()
@@ -95,13 +99,25 @@ def _scrape_title_page(root):
             continue
         value = (b.tail or '').strip()
         if value:
-            result[label.lower()] = value
+            result.setdefault(label.lower(), value)
 
     return result
 
 
 def _parse_int(value):
     return parse_count(value)
+
+
+def _chapter_count(scraped):
+    """The story's chapter count from "Chapters" or, with FanFicFare's optional
+    title-page entries, "Chapters/Total Chapters" (n/total; n is the count)."""
+    for label in ('chapters', 'chapters/total chapters'):
+        value = scraped.get(label)
+        match = CHAPTERS_SLASH_RE.match(value or '')
+        count = _parse_int(match.group(1) if match else value)
+        if count is not None:
+            return count
+    return None
 
 
 def _parse_date(value):
@@ -184,6 +200,8 @@ def _split_list(value):
 
 def _site(url):
     host = urlsplit(url or '').netloc.lower()
+    if host == 'm.fanfiction.net':
+        return 'fanfiction.net'
     return host[4:] if host.startswith('www.') else host
 
 
@@ -236,10 +254,9 @@ def extract_fic_records(zf: ZipFile):
         for key in ('rating', 'warnings'):
             if scraped.get(key):
                 record[key] = scraped[key]
-        if scraped.get('chapters') is not None:
-            n = _parse_int(scraped.get('chapters'))
-            if n is not None:
-                record['numChapters'] = n
+        n = _chapter_count(scraped)
+        if n is not None:
+            record['numChapters'] = n
         if scraped.get('words') is not None:
             n = _parse_int(scraped.get('words'))
             if n is not None:

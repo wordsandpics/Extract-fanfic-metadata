@@ -1,5 +1,6 @@
 """Synthetic fixture regressions; run with unittest discovery."""
 import io
+import re
 import sys
 import unittest
 from pathlib import Path
@@ -99,6 +100,27 @@ class CollectionExtractionTest(unittest.TestCase):
             fields, _ = extract_collection(zf, {'identifiers': {'uri': 'https://web.archive.org/web/20200101000000/https://archiveofourown.org/series/98000411'}})
             self.assertEqual(fields['collectionUrl'], 'https://archiveofourown.org/series/98000411')
             self.assertIn('waybackUrl', fields)
+
+class AnthologyChapterLineTest(unittest.TestCase):
+
+    def test_total_chapters_from_the_optional_n_of_total_line(self):
+        source = Path(__file__).resolve().parent / 'fixtures' / 'anthology-complete.epub'
+        expected, _ = extract_fields(source)
+        buffer, changed = io.BytesIO(), 0
+        with ZipFile(source) as original, ZipFile(buffer, 'w') as copy:
+            for item in original.infolist():
+                data = original.read(item.filename)
+                if 'title_page' in item.filename:
+                    data, count = re.subn(rb'<b>Chapters:</b>\s*([0-9]+)',
+                                          rb'<b>Chapters/Total Chapters:</b> \1/?', data)
+                    changed += count
+                copy.writestr(item, data)
+        self.assertTrue(changed)
+        buffer.seek(0)
+        fields, _ = extract_fields(buffer)
+        self.assertIsNotNone(expected.get('collectionChapterCount'))
+        self.assertEqual(fields.get('collectionChapterCount'), expected['collectionChapterCount'])
+
 
 class FreshNumericTest(unittest.TestCase):
 

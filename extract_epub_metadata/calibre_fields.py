@@ -219,6 +219,8 @@ KEY_KINDS = {
     'collectionChapterCount': 'int', 'collectionDateBegun': 'datetime',
     'collectionDateUpdated': 'datetime',
     'collectionStoryReport': 'text',
+    # True/False lines from a FanFicFare title page; Yes/No columns only.
+    'subscribed': 'bool', 'bookmarked': 'bool', 'markedforlater': 'bool',
 }
 
 # Synthetic boolean key, not in `fields` directly -- derived from `status`
@@ -331,6 +333,9 @@ FIELD_LABELS = {
     'dateUpdated': 'Date Updated',
     'dateCreated': 'Date Recovered',
     STATUS_COMPLETE_KEY: 'Completed? (yes/no)',
+    'subscribed': 'Subscribed? (yes/no)',
+    'bookmarked': 'Bookmarked? (yes/no)',
+    'markedforlater': 'Marked for Later? (yes/no)',
     'collectionUrl': 'Anthology URL',
     'collectionTags': 'Anthology Tags (from EPUB)',
     'collectionStatus': 'Series Completion (from saved page)',
@@ -386,6 +391,15 @@ FIELD_HELP = {
     'dateCreated': 'When the file was downloaded, if it records this; otherwise when this '
                    'plugin ran. Not a date from the story itself.',
     STATUS_COMPLETE_KEY: 'True if the recovered status is "Completed", false otherwise.',
+    'subscribed': 'Whether the downloader was subscribed to this work on AO3 when it was '
+                  'downloaded. Only recovered from a FanFicFare title page that has an "I Subscribed" '
+                  'line, otherwise left blank. Not recovered for anthologies.',
+    'bookmarked': 'Whether the downloader had bookmarked this work on AO3 when it was '
+                  'downloaded. Only recovered from a FanFicFare title page that has an '
+                  '"I Bookmarked Story" line, otherwise left blank. Not recovered for anthologies.',
+    'markedforlater': 'Whether the downloader had marked this work for later on AO3 when it was '
+                      'downloaded. Only recovered from a FanFicFare title page that has an '
+                      '"I Marked for Later" line, otherwise left blank. Not recovered for anthologies.',
     'collectionUrl': "The anthology or series URL, not an individual story's.",
     'collectionTags': 'Tags recorded for the anthology as a whole.',
     'collectionDateBegun': 'When the series was begun, from a saved series page.',
@@ -429,6 +443,8 @@ def _kind_compatible(kind, datatype, is_multiple):
         return kind == 'text'
     if datatype in ('text', 'comments', 'enumeration'):
         return kind in ('text', 'list')
+    if datatype == 'bool':
+        return kind == 'bool'
     return False
 
 
@@ -439,7 +455,7 @@ def permitted_keys_for_datatype(datatype, is_multiple=False):
     custom column of the given Calibre datatype.
     """
     if datatype == 'bool':
-        return [STATUS_COMPLETE_KEY]
+        return [STATUS_COMPLETE_KEY] + [k for k, kind in KEY_KINDS.items() if kind == 'bool']
     return [k for k, kind in KEY_KINDS.items() if _kind_compatible(kind, datatype, is_multiple)
             and (k != 'collectionStoryReport' or datatype == 'comments')]
 
@@ -491,6 +507,11 @@ def _coerce_for_column(fields, metadata_key, column):
         from .extractors._text import html_to_text
         value = html_to_text(value)
     kind = KEY_KINDS.get(metadata_key)
+    if kind == 'bool':
+        # False is a real "no", so only a missing line leaves the column alone.
+        if datatype == 'bool' and isinstance(value, bool):
+            return value, True
+        return None, False
     values = value if isinstance(value, list) else [value]
 
     if datatype in ('int', 'float'):

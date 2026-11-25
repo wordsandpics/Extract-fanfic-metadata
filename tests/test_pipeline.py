@@ -615,7 +615,11 @@ class CustomColumnMappingTest(unittest.TestCase):
     def test_permitted_keys_by_datatype(self):
         self.assertIn('numWords', permitted_keys_for_datatype('int'))
         self.assertNotIn('title', permitted_keys_for_datatype('int'))
-        self.assertEqual(permitted_keys_for_datatype('bool'), [STATUS_COMPLETE_KEY])
+        self.assertEqual(permitted_keys_for_datatype('bool'),
+                         [STATUS_COMPLETE_KEY, 'subscribed', 'bookmarked', 'markedforlater'])
+        for key in ('subscribed', 'bookmarked', 'markedforlater'):
+            self.assertNotIn(key, permitted_keys_for_datatype('text'))
+            self.assertNotIn(key, permitted_keys_for_datatype('int'))
         self.assertIn('datePublished', permitted_keys_for_datatype('datetime'))
         self.assertIn('fandoms', permitted_keys_for_datatype('text', is_multiple=True))
         self.assertIn('fandoms', permitted_keys_for_datatype('text', is_multiple=False))

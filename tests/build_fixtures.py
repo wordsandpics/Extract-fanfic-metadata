@@ -90,6 +90,39 @@ def titlepage(f, bold=False):
     return page(body,'fff_titlepage' if bold else '')
 
 
+def titlepage_extras(f):
+    """FanFicFare title page with its optional AO3 entries switched on.
+
+    Uses FanFicFare's own labels for them, and a linked Series line as FanFicFare writes it.
+    Comments, Kudos, Hits and Bookmarks are live counts the plugin must keep ignoring.
+    """
+    def line(label, value):
+        return '<b>' + e(label) + ':</b> ' + e(value) + '<br />'
+    join = ', '.join
+    total = f.get('numChaptersTotal', '?')
+    body = ('<h3><a href="' + e(f['storyUrl']) + '">' + e(f['title']) + '</a> by '
+            '<a class=\'authorlink\' href="' + e(f['authorUrl'][0]) + '">' + e(f['author'][0]) + '</a></h3><div>')
+    if 'series' in f:
+        body += '<b>Series:</b> <a class=\'serieslink\' href="' + e(f['seriesUrl']) + '">' + e(f['series']) + '</a><br />'
+    body += ''.join(line(k, v) for k, v in [
+        ('Category', join(f['category'])), ('Genre', join(f['freeformtags'] + f['ao3categories'])),
+        ('Language', f['language']), ('Characters', join(f['characters'])), ('Relationships', join(f['ships'])),
+        ('Status', f['status']), ('Published', f['datePublished'][:10]), ('Updated', f['dateUpdated'][:10]),
+        ('Packaged', f['dateCreated'].replace('T', ' ')), ('Rating', f['rating']), ('Warnings', join(f['warnings'])),
+        ('Chapters/Total Chapters', str(f['numChapters']) + '/' + str(total)),
+        ('Words', format(f['numWords'], ',')), ('Publisher', 'archiveofourown.org')])
+    body += '<b>Summary:</b><br /><blockquote>' + ps(f['description']) + '</blockquote>'
+    body += ''.join(line(k, v) for k, v in [
+        ('Fandoms', join(f['category'])), ('Freeform Tags', join(f['freeformtags'])),
+        ('AO3 Categories', join(f['ao3categories'])), ('Comments', '465'), ('Total Chapters', str(total)),
+        ('Kudos', '1,958'), ('Hits', '51,079'), ('Bookmarks', '226'), ('Byline', join(f['author']))])
+    # Only present when the downloader was logged in to AO3 (FanFicFare writes True or False).
+    body += ''.join(line(label, str(f[key])) for key, label in [
+        ('subscribed', 'I Subscribed'), ('bookmarked', 'I Bookmarked Story'),
+        ('markedforlater', 'I Marked for Later')] if key in f)
+    return page(body + '</div>', 'fff_titlepage')
+
+
 def stats(f, separator=' '):
     fields=[]
     for key,label in [('datePublished','Published'),('dateUpdated','Updated'),('numWords','Words')]:
@@ -147,6 +180,9 @@ def build_epub(case):
         url_meta=('<dc:source>'+e(url)+'</dc:source>' if scheme=='source' else '<dc:identifier opf:scheme="'+scheme+'">'+e(url)+'</dc:identifier>') if url else ''
         meta=metadata(f,description=False,url=False)+url_meta
         if whole:meta=meta.replace('<dc:title>'+e(f['title'])+'</dc:title>','<dc:title>Synthetic browser page chrome [Archive of Our Own]</dc:title>')
+    elif kind=='fff_extras':
+        docs['OEBPS/title_page.xhtml']=titlepage_extras(f)
+        meta=metadata(f,description=True)
     elif kind in ('fff_bold','fff_para','intro'):
         bold=kind=='fff_bold';path='OEBPS/title_page.xhtml' if bold else 'EPUB/introduction.xhtml' if kind=='intro' else 'OEBPS/titlepage.html'
         docs[path]=titlepage(f,bold)

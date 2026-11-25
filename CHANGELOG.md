@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.4.1] - Unreleased
+
+- Fix: FanFicFare title pages that include its optional AO3 lines (Chapters/Total Chapters,
+  Total Chapters, AO3 Categories and Freeform Tags) are now read. Chapter Count, AO3 Category
+  and Additional Tags columns filled for these books were left empty before.
+- Fix: the series and series link are now read from FanFicFare's linked Series line.
+- New: Subscribed, Bookmarked and Marked for Later (yes/no) can be written to Yes/No
+  columns. They come from FanFicFare title pages that have the "I Subscribed", "I Bookmarked
+  Story" or "I Marked for Later" lines, which FanFicFare writes only when it was logged in
+  to AO3 and the entries are in its title-page list. They show the state on download day, and
+  books without the lines stay blank. They aren't filled for anthologies.
+- Fix: labels an author typed inside a story's summary (a bold "Status:" or "Warnings:")
+  no longer replace the real values on FanFicFare title pages.
+- Fix: anthology chapter totals now count stories whose title page has only the
+  "Chapters/Total Chapters" line.
+- Fix: stories linked through m.fanfiction.net are recognized as fanfiction.net.
+- Books you already ran need to be extracted again to pick these up.
+
 ## [1.4.0] - 2026-11-18
 
 - Custom columns get an **Overwrite** tick per row in the column mapping. Unticked
