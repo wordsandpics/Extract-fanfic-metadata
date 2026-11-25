@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.4.1] - Unreleased
+## [1.4.1] - 2026-11-25
 
 - Fix: FanFicFare title pages that include its optional AO3 lines (Chapters/Total Chapters,
   Total Chapters, AO3 Categories and Freeform Tags) are now read. Chapter Count, AO3 Category
