@@ -49,17 +49,15 @@ KEY_SHOW_CONFIRMATION = 'showConfirmation'
 # carried into the column mapping once (prefs_migration.py).
 
 DEFAULT_STORE_VALUES = {
-    # Mode 1 (Saved Metadata column, for FanFicFare's own "Update Calibre
-    # Metadata from Saved Metadata Column" action) defaults ON -- it only
-    # stages a blob, low-stakes/reversible. Modes 2/3 (direct standard-
-    # field / custom-column writes) default OFF -- they mutate the
-    # library directly, an existing install shouldn't start doing that
-    # just because it picked up a plugin update.
-    KEY_MODE1_ENABLED: True,
+    # A new install (1.4.2 on) starts with standard metadata on and Saved
+    # Metadata off: Saved Metadata needs a column chosen first, so it could not
+    # work out of the box. Preview stays on, so nothing is written unseen.
+    # Existing settings keep their write options; see EARLIER_MODE_DEFAULTS.
+    KEY_MODE1_ENABLED: False,
     KEY_DEST_COLUMN: '',
     KEY_OVERWRITE: False,
 
-    KEY_MODE2_ENABLED: False,
+    KEY_MODE2_ENABLED: True,
     KEY_MODE2_OVERWRITE: False,
     KEY_ANTHOLOGY_PUBDATE: False,
 
@@ -72,6 +70,11 @@ DEFAULT_STORE_VALUES = {
     KEY_PREVIEW: True,
     KEY_SHOW_CONFIRMATION: True,
 }
+
+# The write options' defaults before 1.4.2. Settings saved by an earlier version
+# that lack one of these keys keep the old value, so an update never starts
+# writing to a library on its own.
+EARLIER_MODE_DEFAULTS = {KEY_MODE1_ENABLED: True, KEY_MODE2_ENABLED: False, KEY_MODE3_ENABLED: False}
 
 # Always prefix with 'plugins/' so this doesn't collide with a core calibre
 # config file.
@@ -91,10 +94,13 @@ def get_prefs():
     Always read prefs through this function, never `plugin_prefs[STORE_NAME]`
     directly.
     """
+    existing = STORE_NAME in plugin_prefs
     stored, changed = migrate_anthology_report(dict(plugin_prefs[STORE_NAME]))
     if changed:
         plugin_prefs[STORE_NAME] = stored
     prefs = dict(DEFAULT_STORE_VALUES)
+    if existing:
+        prefs.update(EARLIER_MODE_DEFAULTS)
     prefs.update(stored)
     return prefs
 

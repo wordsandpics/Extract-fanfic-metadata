@@ -31,7 +31,7 @@ with plugin:
         columns=api.field_metadata.custom_field_metadata()
         gui=QWidget();gui.current_db=db;gui.library_view=SimpleNamespace(model=lambda:SimpleNamespace(custom_columns=columns))
         action=ExtractEpubMetadataAction(gui,'')
-        prefs=dict(DEFAULT_STORE_VALUES,destColumn='#saved',mode2Overwrite=True,columnMapping={'#words':'numWords'})
+        prefs=dict(DEFAULT_STORE_VALUES,mode1Enabled=True,mode2Enabled=False,destColumn='#saved',mode2Overwrite=True,columnMapping={'#words':'numWords'})
         plugin_prefs[STORE_NAME]=prefs
         def add(name,fmt='PDF'):
             bid=db.create_book_entry(Metadata('Before extraction',['Unknown']))

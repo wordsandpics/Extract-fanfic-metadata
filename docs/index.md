@@ -57,8 +57,8 @@ Open **Preferences → Plugins → Extract Fanfic Metadata → Customize plugin*
 
 For your first go:
 
-- Tick **Update standard Calibre metadata**. This fills Calibre's own fields, such as author, tags and summary.
-- Untick **Save all extracted metadata**. It's on to begin with, but it's meant for [use with FanFicFare](#fanficfare) and needs a column set up first.
+- Make sure **Update standard Calibre metadata** is ticked. This fills Calibre's own fields, such as author, tags and summary.
+- Make sure **Save all extracted metadata** is unticked. It's meant for [use with FanFicFare](#fanficfare) and needs a column set up first. (Before version 1.4.2 it was on to begin with.)
 - Leave **Preview before writing** ticked.
 
 ![The plugin’s settings with only Update standard Calibre metadata ticked among the three choices]({{ '/assets/img/settings-first-run.png' | relative_url }}){: .small}

@@ -55,7 +55,7 @@ with plugin:
             with path.open('rb') as f:
                 db.add_format(book_id, 'EPUB', f, index_is_id=True)
             ids.append(book_id)
-        prefs = dict(DEFAULT_STORE_VALUES, destColumn='#saved', mode2Enabled=True, mode3Enabled=True, columnMapping={'#report': 'collectionStoryReport', '#words': 'numWords', '#count': 'collectionStoryCount', '#unknown': 'collectionUnknownCount'})
+        prefs = dict(DEFAULT_STORE_VALUES, mode1Enabled=True, destColumn='#saved', mode2Enabled=True, mode3Enabled=True, columnMapping={'#report': 'collectionStoryReport', '#words': 'numWords', '#count': 'collectionStoryCount', '#unknown': 'collectionUnknownCount'})
         plugin_prefs[STORE_NAME] = prefs
         gui = QWidget()
         gui.current_db = db
@@ -699,6 +699,21 @@ with plugin:
         carried['columnMapping'] = {'#words': 'numWords'}
         plugin_prefs[STORE_NAME] = carried
         assert get_prefs()['columnMapping'] == {'#words': 'numWords'}, 'unmapping must stick'
+        # A new install starts with standard metadata on and Saved Metadata off
+        # (the first read saves those). Settings saved by an earlier version
+        # that lack a write option keep the old default for it.
+        plugin_prefs.pop(STORE_NAME, None)
+        plugin_prefs.commit()
+        fresh = get_prefs()
+        assert (fresh['mode1Enabled'], fresh['mode2Enabled'], fresh['mode3Enabled'], fresh['preview']) == (False, True, False, True), fresh
+        assert plugin_prefs[STORE_NAME]['mode2Enabled'] is True
+        earlier = {k: v for k, v in DEFAULT_STORE_VALUES.items() if k not in ('mode1Enabled', 'mode2Enabled', 'mode2Overwrite')}
+        plugin_prefs[STORE_NAME] = dict(earlier, anthologyReportMigrated=True)
+        kept = get_prefs()
+        assert (kept['mode1Enabled'], kept['mode2Enabled'], kept['mode3Enabled']) == (True, False, False), kept
+        plugin_prefs[STORE_NAME] = dict(earlier, mode1Enabled=False, mode2Enabled=False, anthologyReportMigrated=True)
+        assert (get_prefs()['mode1Enabled'], get_prefs()['mode2Enabled']) == (False, False)
+        print('PASS: new installs start with standard metadata on and Saved Metadata off; earlier settings keep their write options.')
         db.close()
         print('PASS: %d fresh imports, %d collections, %d FFF multi-key round trips, %d run() matrix cases.' % (len(paths), len(collections), round_trips, cases))
         print('PASS: preview unchecking, independent overwrite flags, placeholder writes, already-up-to-date values, anthology story report field, settings carry-over, partial failures.')
