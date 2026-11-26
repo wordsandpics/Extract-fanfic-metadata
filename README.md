@@ -4,6 +4,8 @@
 
 Formerly Extract EPUB Metadata.
 
+**New here? [Read the step-by-step guide with pictures](https://wordsandpics.github.io/Extract-fanfic-metadata/).**
+
 Recover metadata already stored in your fanfiction EPUBs, TXT archives and AO3-generated PDFs and add it to Calibre. Useful for saved stories that are missing metadata or can no longer be downloaded.
 
 You can recover fields such as author, fandom, tags, summary, story URL, word count and chapters, depending on what the file contains. The plugin does not download stories.
