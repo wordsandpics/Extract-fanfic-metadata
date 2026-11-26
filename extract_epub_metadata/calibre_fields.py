@@ -159,6 +159,71 @@ def standard_field_is_populated(field, value):
     return bool(value)
 
 
+def value_matches(current, new):
+    """True only when the stored value is certainly what writing `new` would
+    leave there; anything uncertain counts as a change and is written."""
+    import datetime
+    if current is None or new is None:
+        return False
+    if isinstance(new, (list, tuple)):
+        return isinstance(current, (list, tuple)) and tuple(current) == tuple(new)
+    if isinstance(new, bool) or isinstance(current, bool):
+        return type(current) is type(new) and current == new
+    if isinstance(new, datetime.datetime):
+        # Compare like with like; mixing a naive and an aware time is a guess.
+        return (isinstance(current, datetime.datetime)
+                and (new.tzinfo is None) == (current.tzinfo is None) and current == new)
+    if isinstance(new, (str, int, float)):
+        return type(current) is type(new) and current == new
+    return False
+
+
+def _stored_standard_value(key, value):
+    """What apply_standard_fields() hands to Calibre for `key`, or None when
+    that can't be worked out here (outside Calibre)."""
+    try:
+        if key == 'comments':
+            from calibre.library.comments import sanitize_comments_html
+            return sanitize_comments_html(value)
+        if key == 'language':
+            from calibre.utils.localization import canonicalize_lang
+            return [canonicalize_lang(value)]
+    except Exception:
+        return None
+    return value
+
+
+def split_unchanged_standard(db, book_id, pending):
+    """Move standard fields whose stored value already matches into a
+    separate dict, so the preview can say they are up to date."""
+    changes, unchanged = {}, {}
+    for key, value in pending.items():
+        target = STANDARD_FIELD_MAP[key]
+        if key == 'series':
+            # "Name [N]": Calibre stores the name and the number separately.
+            match = re.match(r'^(.*\S)\s*\[(\d+(?:\.\d+)?)\]$', value or '')
+            same = bool(match and db.field_for('series', book_id) == match.group(1)
+                        and db.field_for('series_index', book_id) == float(match.group(2)))
+        else:
+            same = value_matches(db.field_for(target, book_id), _stored_standard_value(key, value))
+        if same:
+            unchanged[key] = value
+        else:
+            changes[key] = value
+    return changes, unchanged
+
+
+def split_unchanged_custom(db, book_id, pending):
+    """The same for mapped custom columns."""
+    changes, unchanged = {}, {}
+    for column_key, value in pending.items():
+        if value_matches(db.field_for(column_key, book_id), value):
+            unchanged[column_key] = value
+        else:
+            changes[column_key] = value
+    return changes, unchanged
+
+
 def write_field(db, book_id, field, value, written):
     """Track actual database changes, including progress before an error."""
     changed = db.set_field(field, {book_id: value})

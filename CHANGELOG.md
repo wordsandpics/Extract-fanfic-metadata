@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.4.2] - Unreleased
+
+- The preview lists values Calibre already holds as **Already up to date** instead of
+  values to write. A book with nothing new says "Everything is already up to date" and
+  can't be selected.
+- After writing, the message counts books that were already up to date, for example
+  "Updated 0 of 1 selected book(s). 1 already up to date; nothing needed changing."
+- Fix: the message no longer says anthologies don't receive Saved Metadata after every
+  anthology run. The preview mentions it only when Save all extracted metadata is on.
+
 ## [1.4.1] - 2026-11-25
 
 - Fix: FanFicFare title pages that include its optional AO3 lines (Chapters/Total Chapters,

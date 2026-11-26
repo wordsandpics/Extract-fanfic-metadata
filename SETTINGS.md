@@ -79,7 +79,8 @@ A column can't be both the Saved Metadata column and a mapped column.
   identifiers when it has none. An existing identifier is never replaced. FanFicFare
   uses this URL to recognize the story's site. This applies whichever write options are on.
 - **Preview before writing:** shows everything that would change, book by book, before
-  anything is written. You can uncheck books to skip them.
+  anything is written. You can uncheck books to skip them. Values Calibre already holds
+  are listed as already up to date and aren't written again.
 - **Show confirmation after writing:** shows a short summary of how many books were
   updated.
 

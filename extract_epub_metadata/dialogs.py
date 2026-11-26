@@ -43,7 +43,8 @@ class BookResult:
                  existing_column_value=None, standard_fields=None,
                  custom_column_values=None, error=None, standard_skipped=None,
                  saved_write=None, notes=None, identifier_requested=True,
-                 custom_skipped=None, custom_fill_only=None):
+                 custom_skipped=None, custom_fill_only=None, standard_unchanged=None,
+                 custom_unchanged=None, saved_unchanged=False, saved_requested=True):
         self.book_id = book_id
         self.title = title
         self.fields = fields
@@ -58,6 +59,11 @@ class BookResult:
         self.standard_skipped = standard_skipped or {}
         self.custom_skipped = custom_skipped or {}
         self.custom_fill_only = set(custom_fill_only or ())
+        # Values Calibre already holds: shown as up to date, never written.
+        self.standard_unchanged = standard_unchanged or {}
+        self.custom_unchanged = custom_unchanged or {}
+        self.saved_unchanged = saved_unchanged
+        self.saved_requested = saved_requested
         self.saved_write = bool(blob) if saved_write is None else saved_write
         self.notes = notes or []
         self.identifier_requested = identifier_requested
@@ -70,6 +76,10 @@ class BookResult:
                     self.custom_column_values or
                     (self.identifier_url and not self.identifier_already_set)))
 
+    @property
+    def has_unchanged(self):
+        return bool(self.standard_unchanged or self.custom_unchanged or self.saved_unchanged)
+
     def summary_lines(self):
         if self.error:
             return ['Error: %s' % self.error]
@@ -77,8 +87,9 @@ class BookResult:
         collection = self.fields.get('collectionType')
         if collection:
             lines.extend(['Anthology type: %s' % _ANTHOLOGY_TYPES.get(collection, collection),
-                          'Anthology URL: %s' % self.fields.get('collectionUrl', 'not recovered'),
-                          'Saved Metadata skipped: FanFicFare imports single stories, not anthologies.'])
+                          'Anthology URL: %s' % self.fields.get('collectionUrl', 'not recovered')])
+            if self.saved_requested:
+                lines.append('Saved Metadata skipped: FanFicFare imports single stories, not anthologies.')
         if self.identifier_url:
             note = ' (already set, not changed)' if self.identifier_already_set else ' (will be added)'
             lines.append('Story URL identifier: %s%s' % (self.identifier_url, note))
@@ -86,25 +97,32 @@ class BookResult:
             lines.append('Story URL identifier: not recovered -- FanFicFare '
                           'may not be able to pick an adapter for this book.')
 
-        if self.standard_fields or self.standard_skipped:
+        if self.standard_fields or self.standard_skipped or self.standard_unchanged:
             lines.append('')
             lines.append('=== Standard Calibre Fields ===')
             lines.extend(_format_field_dict(self.standard_fields))
             if self.standard_skipped:
                 lines.append('Existing values kept; these fields will be skipped:')
                 lines.extend(_format_field_dict(self.standard_skipped))
+            if self.standard_unchanged:
+                lines.append('Already up to date; nothing to write:')
+                lines.extend(_format_field_dict(self.standard_unchanged))
 
-        if self.custom_column_values or self.custom_skipped:
+        if self.custom_column_values or self.custom_skipped or self.custom_unchanged:
             lines.append('')
             lines.append('=== Custom Column Mapping ===')
             lines.extend(_format_field_dict(self.custom_column_values))
             if self.custom_skipped:
                 lines.append('Existing values kept; these columns will be skipped:')
                 lines.extend(_format_field_dict(self.custom_skipped))
+            if self.custom_unchanged:
+                lines.append('Already up to date; nothing to write:')
+                lines.extend(_format_field_dict(self.custom_unchanged))
 
         if self.blob:
             lines.extend(['', '=== Saved Metadata Column ===',
                           'Will be written.' if self.saved_write else
+                          'Already up to date; nothing to write.' if self.saved_unchanged else
                           'Existing column value kept; Saved Metadata will be skipped.'])
             lines.append('Recovered fields (source tier in brackets):')
             lines.extend(_format_field_dict(self.fields, self.sources))
@@ -121,7 +139,9 @@ class BookResult:
                 lines.extend(story_detail_lines(records))
             else:
                 lines.append('Individual story metadata is not available in this EPUB.')
-        if not self.has_writes:
+        if not self.has_writes and self.has_unchanged:
+            lines.extend(['', 'Everything is already up to date; nothing will be written.'])
+        elif not self.has_writes:
             lines.extend(['', 'No changes will be written with the current settings.'])
             if collection:
                 lines.append('Enable standard/custom-column updates, or map the Anthology Story Report '

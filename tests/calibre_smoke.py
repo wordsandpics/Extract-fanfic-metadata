@@ -78,6 +78,25 @@ with plugin:
             assert not api.field_for('#saved', r.book_id)
             assert any(('Saved Metadata skipped' in line for line in r.summary_lines()))
         assert action._write_results(api, '#saved', results, True, True, True) == 0
+        # A second run with every overwrite on: values Calibre already holds are up to date.
+        all_ticked = {key: True for key in prefs['columnMapping'].values()}
+        again_prefs = dict(prefs, overwrite=True, mode2Overwrite=True, customOverwrite=all_ticked)
+        plugin_prefs[STORE_NAME] = again_prefs
+        again = [action._process_book(api, r.book_id, '#saved', again_prefs, False, True, True, prefs['columnMapping'], columns) for r in results]
+        action._write_results(api, '#saved', again, False, True, True)
+        again = [action._process_book(api, r.book_id, '#saved', again_prefs, False, True, True, prefs['columnMapping'], columns) for r in results]
+        plugin_prefs[STORE_NAME] = prefs
+        stale = [(r.title, sorted(r.standard_fields), sorted(r.custom_column_values)) for r in again
+                 if r.standard_fields or r.custom_column_values]
+        assert not stale, stale
+        for r in again:
+            if r.fields.get('collectionType'):
+                lines = r.summary_lines()
+                assert not r.has_writes and r.has_unchanged, (r.title, r.has_writes)
+                assert ('#report' in r.custom_unchanged) == bool(r.fields.get('collectionStoryReport'))
+                assert 'Everything is already up to date; nothing will be written.' in lines, lines
+                assert 'Already up to date; nothing to write:' in lines
+                assert not any('Saved Metadata skipped' in line for line in lines), lines
         for r in collections:
             assert not api.field_for('#saved', r.book_id)
             assert api.field_for('#count', r.book_id) == r.fields['collectionStoryCount']
@@ -373,7 +392,13 @@ with plugin:
             plugin_prefs[STORE_NAME] = dict(prefs, mode1Enabled=True, mode2Enabled=False, mode3Enabled=False, preview=False, addMissingIdentifier=False)
             matrix_ids = [good.book_id]
             action.run()
-            assert 'Anthologies do not receive' in confirmations[-1]
+            assert confirmations[-1] == 'Updated 0 of 1 selected book(s).', confirmations[-1]
+            # Overwrite on but nothing new: the message says the book was already up to date.
+            plugin_prefs[STORE_NAME] = dict(again_prefs, mode1Enabled=False, preview=False, addMissingIdentifier=False)
+            action.run()
+            assert confirmations[-1] == ('Updated 0 of 1 selected book(s). '
+                                         '1 already up to date; nothing needed changing.'), confirmations[-1]
+            plugin_prefs[STORE_NAME] = dict(prefs, mode1Enabled=True, mode2Enabled=False, mode3Enabled=False, preview=False, addMissingIdentifier=False)
             # Use the explicit unsupported source, independent of scenario ordering.
             api.set_field('identifiers', {lj.book_id: {}})
             matrix_ids = [lj.book_id]
@@ -638,5 +663,5 @@ with plugin:
         assert get_prefs()['columnMapping'] == {'#words': 'numWords'}, 'unmapping must stick'
         db.close()
         print('PASS: %d fresh imports, %d collections, %d FFF multi-key round trips, %d run() matrix cases.' % (len(paths), len(collections), round_trips, cases))
-        print('PASS: preview unchecking, independent overwrite flags, placeholder writes, anthology story report field, settings carry-over, partial failures.')
+        print('PASS: preview unchecking, independent overwrite flags, placeholder writes, already-up-to-date values, anthology story report field, settings carry-over, partial failures.')
         print('Skipped unsupported FFF imports (%d): %s' % (len(skipped), '; '.join(skipped)))

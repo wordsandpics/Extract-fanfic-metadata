@@ -6,7 +6,7 @@ from qt.core import QMenu
 from calibre_plugins.extract_epub_metadata.calibre_fields import (
     apply_custom_column_mapping, apply_standard_fields,
     compute_custom_column_values, compute_standard_fields, plan_custom_columns, plan_standard_fields,
-    write_field,
+    split_unchanged_custom, split_unchanged_standard, write_field,
 )
 from calibre_plugins.extract_epub_metadata.common_utils import plugin_icon
 from calibre_plugins.extract_epub_metadata.config import (
@@ -73,7 +73,7 @@ class ExtractEpubMetadataAction(InterfaceAction):
             selected = [r for r in results if not r.error and r.has_writes]
         written = self._write_results(db, dest_column, selected, mode1_on, mode2_on, mode3_on)
         self._refresh_library(selected)
-        self._show_outcome(results, written, len(book_ids), prefs[KEY_SHOW_CONFIRMATION],
+        self._show_outcome(results, written, len(book_ids), prefs[KEY_SHOW_CONFIRMATION], selected,
                            include_extraction_errors=not prefs[KEY_PREVIEW])
 
     def _process_book(self, db, book_id, dest_column, prefs, mode1_on, mode2_on,
@@ -148,6 +148,10 @@ class ExtractEpubMetadataAction(InterfaceAction):
                                              prefs[KEY_ANTHOLOGY_FIELDS]),
                 column_mapping, custom_columns, prefs[KEY_CUSTOM_OVERWRITE],
             ) if mode3_on else ({}, {}, set())
+            # Values Calibre already holds are shown as up to date, not as writes.
+            pending, standard_unchanged = split_unchanged_standard(db, book_id, pending)
+            custom_values, custom_unchanged = split_unchanged_custom(db, book_id, custom_values)
+            saved_unchanged = bool(blob and existing_value == blob)
             # A Wayback uri must not block adding the original work URL as url.
             uri = (identifiers.get('uri') or '').replace('|', ':')
             identifier_set = bool(identifiers.get('url') or (uri and not is_wayback_url(uri)))
@@ -157,8 +161,10 @@ class ExtractEpubMetadataAction(InterfaceAction):
                 identifier_already_set=identifier_set, existing_column_value=existing_value,
                 standard_fields=pending, standard_skipped=skipped, custom_column_values=custom_values,
                 custom_skipped=custom_skipped, custom_fill_only=custom_fill_only,
-                saved_write=bool(blob and (prefs[KEY_OVERWRITE] or not existing_value)),
-                identifier_requested=prefs[KEY_ADD_IDENTIFIER],
+                standard_unchanged=standard_unchanged, custom_unchanged=custom_unchanged,
+                saved_unchanged=saved_unchanged,
+                saved_write=bool(blob and not saved_unchanged and (prefs[KEY_OVERWRITE] or not existing_value)),
+                identifier_requested=prefs[KEY_ADD_IDENTIFIER], saved_requested=mode1_on,
                 notes=notes,
             )
         except Exception as e:
@@ -213,8 +219,15 @@ class ExtractEpubMetadataAction(InterfaceAction):
             view.model().refresh_ids(book_ids, view.currentIndex().row())
             self.gui.tags_view.recount()
 
-    def _show_outcome(self, results, written, total, show_confirmation, include_extraction_errors=False):
+    def _show_outcome(self, results, written, total, show_confirmation, selected=(),
+                      include_extraction_errors=False):
         summary = 'Updated %d of %d selected book(s).' % (written, total)
+        # Written books Calibre reported unchanged, and books the preview found
+        # already up to date (those can't be selected).
+        up_to_date = sum(1 for r in results if not r.error and not r.write_errors and (
+            (r in selected and not r.written_fields) or (not r.has_writes and r.has_unchanged)))
+        if up_to_date:
+            summary += ' %d already up to date; nothing needed changing.' % up_to_date
         failures = []
         for result in results:
             errors = list(result.write_errors)
@@ -231,9 +244,6 @@ class ExtractEpubMetadataAction(InterfaceAction):
         elif show_confirmation:
             notes = []
             for result in results:
-                if getattr(result, 'fields', {}).get('collectionType'):
-                    notes.append('Anthologies do not receive FanFicFare Saved Metadata. '
-                                 'Use standard/custom-column updates instead.')
                 notes.extend(getattr(result, 'notes', []))
             if not written and notes:
                 summary += '\n\n' + '\n'.join(dict.fromkeys(notes))
