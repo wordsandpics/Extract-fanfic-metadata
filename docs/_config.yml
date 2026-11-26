@@ -1,0 +1,33 @@
+title: Extract Fanfic Metadata
+tagline: A Calibre plugin for saved fanfiction
+author: wordsandpics
+author_url: https://github.com/wordsandpics/
+repo_url: "https://github.com/wordsandpics/Extract-fanfic-metadata"
+description: Get the details stored in your saved fanfiction back into Calibre
+baseurl: "/Extract-fanfic-metadata"
+url: "https://wordsandpics.github.io"
+
+markdown: kramdown
+highlighter: rouge
+permalink: pretty
+
+exclude:
+  - scripts
+
+nav:
+  - title: Get started
+    pages:
+      - label: 1. Install the plugin
+        url: "/#install"
+      - label: 2. Choose what to update
+        url: "/#settings"
+      - label: 3. Try it on a few books
+        url: "/#first-run"
+  - title: Going further
+    pages:
+      - label: Fill your own columns
+        url: "/#columns"
+      - label: Use it with FanFicFare
+        url: "/#fanficfare"
+      - label: Something not working?
+        url: "/#help"
