@@ -77,11 +77,11 @@ For your first go:
 
 1. Select the books.
 2. Click **Extract Metadata** on the toolbar.
-3. A preview lists your books. Click each one to see what was found, and what will be skipped because it's already filled in.
+3. A preview lists your books. Click each one to see what was found, and what will be skipped because it's already filled in. The box at the top sums up what will happen to that book.
 
-   ![The preview window, listing three books, with the date, series and tags to be added to the first and the details it already has]({{ '/assets/img/preview-window.png' | relative_url }})
+   ![The preview window, listing three books. A summary at the top says 2 fields and the story link will be written and 4 details kept; below it, the date and tags to be added and the details the book already has]({{ '/assets/img/preview-window.png' | relative_url }})
 
-   In this example the title, author, summary and language were already there, so they’re kept. The date, series, tags and story link will be added.
+   In this example the title, author, summary and language were already there, so they’re kept. The date, tags and story link will be added.
 
 4. Untick any book you want to leave alone.
 5. Click **Write Selected**. A short message tells you how many books were updated.
