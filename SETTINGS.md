@@ -13,22 +13,6 @@ You can turn on any combination of the three write options below. Saved Metadata
 standard metadata each have their own overwrite setting; custom columns have an
 **Overwrite** tick per column.
 
-### Save all extracted metadata
-
-Saves everything the plugin recovered as one block of data in a **Long text** column,
-in the format FanFicFare uses for its Saved Metadata. Your library's title, tags and
-other fields are not changed. Use this if you use FanFicFare: run its **Update Calibre
-Metadata from Saved Metadata Column** action afterwards to apply your FanFicFare
-settings.
-
-- **Saved Metadata Column:** choose the same Long text column that FanFicFare's own
-  Saved Metadata Column setting uses.
-- **Overwrite existing Saved Metadata:** when off, books that already have saved
-  metadata are skipped.
-
-Saved Metadata needs a story URL that FanFicFare supports. When one isn't found, the
-preview explains why this book is skipped.
-
 ### Update standard Calibre metadata
 
 Writes straight into Calibre's own fields:
@@ -72,6 +56,22 @@ count column. Useful whether or not you use FanFicFare.
   off by default. See [Anthologies](#anthologies).
 
 A column can't be both the Saved Metadata column and a mapped column.
+
+### Save all extracted metadata
+
+Saves everything the plugin recovered as one block of data in a **Long text** column,
+in the format FanFicFare uses for its Saved Metadata. Your library's title, tags and
+other fields are not changed. Use this if you use FanFicFare: run its **Update Calibre
+Metadata from Saved Metadata Column** action afterwards to apply your FanFicFare
+settings.
+
+- **Saved Metadata Column:** choose the same Long text column that FanFicFare's own
+  Saved Metadata Column setting uses.
+- **Overwrite existing Saved Metadata:** when off, books that already have saved
+  metadata are skipped.
+
+Saved Metadata needs a story URL that FanFicFare supports. When one isn't found, the
+preview explains why this book is skipped.
 
 ### Other options
 

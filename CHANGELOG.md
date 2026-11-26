@@ -5,6 +5,8 @@
 - New installs start with **Update standard Calibre metadata** on and **Save all extracted
   metadata** off, so the first run works without choosing a column. Existing settings
   don't change.
+- The settings window lists **Update standard Calibre metadata** first, then **Update
+  custom columns**, then **Save all extracted metadata** (for FanFicFare).
 - Each book's preview starts with a short summary: how many standard fields and custom
   columns were found, how many will be written, kept or are already up to date, what
   happens to Saved Metadata, and whether anything will be written at all.

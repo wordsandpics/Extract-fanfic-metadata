@@ -166,11 +166,13 @@ class ConfigWidget(QWidget):
         tab = QWidget(self)
         layout = QVBoxLayout(tab)
 
-        layout.addWidget(self._build_mode1_group(prefs, custom_columns))
-        layout.addSpacing(GROUP_SPACING)
+        # Calibre's own fields first, then custom columns, then the
+        # FanFicFare-only Saved Metadata (built in this order for tab order).
         layout.addWidget(self._build_mode2_group(prefs))
         layout.addSpacing(GROUP_SPACING)
         layout.addWidget(self._build_mode3_group(prefs, custom_columns))
+        layout.addSpacing(GROUP_SPACING)
+        layout.addWidget(self._build_mode1_group(prefs, custom_columns))
         layout.addSpacing(GROUP_SPACING)
 
         self.add_identifier = QCheckBox(

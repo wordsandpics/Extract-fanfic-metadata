@@ -28,9 +28,9 @@ Download the installable plugin ZIP from the latest release’s [Assets](https:/
 
 1. Open **Preferences → Plugins → Extract Fanfic Metadata → Customize plugin** and choose what to update:
 
-   - **Save extracted metadata:** Store it in the Long Text column you use for FanFicFare’s Saved Metadata.
    - **Update standard metadata:** Write fields such as Title, Authors, Tags, Series and Comments.
    - **Update custom columns:** Map recovered fields, such as word count or rating, to your own columns.
+   - **Save extracted metadata:** Store it in the Long Text column you use for FanFicFare’s Saved Metadata.
 
    You can combine these options. Existing values are kept unless you enable overwrite.
    See [Settings and fields](SETTINGS.md) for every option and field.
