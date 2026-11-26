@@ -1,27 +1,30 @@
-# Extract Fanfic Metadata 1.4.1
+# Extract Fanfic Metadata 1.4.2
 
-Reads more FanFicFare title pages.
-
-## Fixed
-
-- **Optional AO3 lines on FanFicFare title pages.** If your FanFicFare adds Chapters/Total
-  Chapters, Total Chapters, AO3 Categories and Freeform Tags to the title page, the plugin now
-  reads them. Columns mapped to Chapter Count, AO3 Category (M/M, F/F, Gen…) and Additional
-  Tags used to stay empty for these books.
-- **Series from FanFicFare title pages.** FanFicFare writes the series as a link; the series
-  and its link are now recovered.
-- **Labels inside a summary.** A bold "Status:" or "Warnings:" typed in a story's summary no
-  longer replaces the real value.
-- **Anthology chapter totals** now include stories whose title page has only
-  "Chapters/Total Chapters".
-- **m.fanfiction.net links** are recognized as fanfiction.net.
+See at a glance what the plugin will do.
 
 ## New
 
-- **Subscribed, Bookmarked and Marked for Later.** Map them to Yes/No columns. They are read
-  from the "I Subscribed", "I Bookmarked Story" and "I Marked for Later" lines that
-  FanFicFare adds to the title page when it was logged in to AO3 and those entries are in its
-  title-page list. They show the state on the day of the download, and books without the
-  lines stay blank. They aren't filled for anthologies.
+- **A summary at the top of each book's preview.** It shows how many standard fields and
+  custom columns were found, how many will be written, kept or are already up to date, what
+  happens to Saved Metadata, and whether anything will be written at all.
+- **Already up to date.** Values Calibre already holds are listed as already up to date
+  instead of as changes. A book with nothing new says so and can't be selected.
+- After writing, the message also counts books that were already up to date.
 
-Books you already ran need to be extracted again to pick these up.
+## Changed
+
+- **New installs start ready to use**, with **Update standard Calibre metadata** on and
+  **Save all extracted metadata** off, so the first run works without choosing a column.
+  Existing settings don't change.
+- **New settings order:** standard metadata first, then custom columns, then Saved Metadata
+  (for FanFicFare).
+
+## Fixed
+
+- **Settings and multiple libraries.** The plugin's settings are shared by all your
+  libraries. Pressing OK in a library that lacks some of your columns no longer removes
+  those column mappings, their ticks, or the Saved Metadata column for your other
+  libraries. Such columns now show as "not in this library".
+- The message after writing no longer says that anthologies don't receive Saved Metadata
+  every time you update one. The preview mentions it only when Save all extracted metadata
+  is on.

@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.4.2] - Unreleased
+## [1.4.2] - 2026-11-26
 
 - New installs start with **Update standard Calibre metadata** on and **Save all extracted
   metadata** off, so the first run works without choosing a column. Existing settings
