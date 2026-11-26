@@ -44,7 +44,8 @@ class BookResult:
                  custom_column_values=None, error=None, standard_skipped=None,
                  saved_write=None, notes=None, identifier_requested=True,
                  custom_skipped=None, custom_fill_only=None, standard_unchanged=None,
-                 custom_unchanged=None, saved_unchanged=False, saved_requested=True):
+                 custom_unchanged=None, saved_unchanged=False, saved_requested=True,
+                 standard_requested=True, custom_requested=True):
         self.book_id = book_id
         self.title = title
         self.fields = fields
@@ -64,6 +65,8 @@ class BookResult:
         self.custom_unchanged = custom_unchanged or {}
         self.saved_unchanged = saved_unchanged
         self.saved_requested = saved_requested
+        self.standard_requested = standard_requested
+        self.custom_requested = custom_requested
         self.saved_write = bool(blob) if saved_write is None else saved_write
         self.notes = notes or []
         self.identifier_requested = identifier_requested
@@ -80,10 +83,57 @@ class BookResult:
     def has_unchanged(self):
         return bool(self.standard_unchanged or self.custom_unchanged or self.saved_unchanged)
 
+    def overview_lines(self):
+        """A short block at the top of the preview: what was found and what
+        will happen, per write option, then whether anything will be written."""
+        def counts(label, to_write, kept, unchanged, kept_reason):
+            found = len(to_write) + len(kept) + len(unchanged)
+            if not found:
+                return '%s: nothing found' % label
+            parts = ['%d found' % found, '%d to write' % len(to_write)]
+            if unchanged:
+                parts.append('%d already up to date' % len(unchanged))
+            if kept:
+                parts.append('%d kept (%s)' % (len(kept), kept_reason))
+            return '%s: %s' % (label, ', '.join(parts))
+
+        collection = self.fields.get('collectionType')
+        lines = []
+        if self.standard_requested:
+            lines.append(counts('Standard fields', self.standard_fields, self.standard_skipped,
+                                self.standard_unchanged, 'overwrite is off'))
+        if self.custom_requested:
+            lines.append(counts('Custom columns', self.custom_column_values, self.custom_skipped,
+                                self.custom_unchanged, 'Overwrite not ticked'))
+        if self.saved_requested:
+            if collection:
+                state = 'not used for anthologies'
+            elif not self.blob:
+                state = 'skipped, no supported story URL'
+            elif self.saved_write:
+                state = 'will be written'
+            elif self.saved_unchanged:
+                state = 'already up to date'
+            else:
+                state = 'kept (overwrite is off)'
+            lines.append('Saved Metadata: %s' % state)
+        if self.identifier_url and not self.identifier_already_set:
+            lines.append('Story URL identifier: will be added')
+        changes = (len(self.standard_fields) + len(self.custom_column_values) + int(bool(self.saved_write))
+                   + int(bool(self.identifier_url and not self.identifier_already_set)))
+        if self.has_writes:
+            lines.append('>> Ready to write %d change%s.' % (changes, '' if changes == 1 else 's'))
+        elif self.has_unchanged:
+            lines.append('>> Nothing to write: everything is already up to date.')
+        else:
+            lines.append('>> Nothing to write with the current settings.')
+        rule = '=' * 44
+        return [rule] + lines + [rule, '']
+
     def summary_lines(self):
         if self.error:
             return ['Error: %s' % self.error]
-        lines = list(self.notes)
+        lines = self.overview_lines() + list(self.notes)
         collection = self.fields.get('collectionType')
         if collection:
             lines.extend(['Anthology type: %s' % _ANTHOLOGY_TYPES.get(collection, collection),

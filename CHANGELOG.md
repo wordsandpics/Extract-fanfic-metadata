@@ -2,6 +2,9 @@
 
 ## [1.4.2] - Unreleased
 
+- Each book's preview starts with a short summary: how many standard fields and custom
+  columns were found, how many will be written, kept or are already up to date, what
+  happens to Saved Metadata, and whether anything will be written at all.
 - The preview lists values Calibre already holds as **Already up to date** instead of
   values to write. A book with nothing new says "Everything is already up to date" and
   can't be selected.

@@ -165,6 +165,7 @@ class ExtractEpubMetadataAction(InterfaceAction):
                 saved_unchanged=saved_unchanged,
                 saved_write=bool(blob and not saved_unchanged and (prefs[KEY_OVERWRITE] or not existing_value)),
                 identifier_requested=prefs[KEY_ADD_IDENTIFIER], saved_requested=mode1_on,
+                standard_requested=mode2_on, custom_requested=mode3_on,
                 notes=notes,
             )
         except Exception as e:

@@ -97,6 +97,23 @@ with plugin:
                 assert 'Everything is already up to date; nothing will be written.' in lines, lines
                 assert 'Already up to date; nothing to write:' in lines
                 assert not any('Saved Metadata skipped' in line for line in lines), lines
+                assert lines[0].startswith('====') and '>> Nothing to write: everything is already up to date.' in lines[:8], lines[:8]
+                assert any(l.startswith('Custom columns: ') and 'already up to date' in l for l in lines[:8]), lines[:8]
+                assert not any(l.startswith('Saved Metadata:') for l in lines[:8]), lines[:8]
+        first = next(r for r in results if r.has_writes and not r.fields.get('collectionType'))
+        assert any(l.startswith('>> Ready to write ') for l in first.summary_lines()[:8]), first.summary_lines()[:8]
+        if os.environ.get('EXTRACT_METADATA_SCREENSHOTS'):
+            shot_folder = Path(os.environ['EXTRACT_METADATA_SCREENSHOTS'])
+            shot_folder.mkdir(parents=True, exist_ok=True)
+            up_to_date = next(r for r in again if r.fields.get('collectionStoryReport'))
+            shot = PreviewDialog(gui, [up_to_date, first])
+            shot.show()
+            app.processEvents()
+            assert shot.grab().save(str(shot_folder / 'preview-up-to-date.png'))
+            shot.list_widget.setCurrentRow(1)
+            app.processEvents()
+            assert shot.grab().save(str(shot_folder / 'preview-ready-to-write.png'))
+            shot.close()
         for r in collections:
             assert not api.field_for('#saved', r.book_id)
             assert api.field_for('#count', r.book_id) == r.fields['collectionStoryCount']
