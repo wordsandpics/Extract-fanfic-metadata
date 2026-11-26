@@ -10,6 +10,10 @@
   can't be selected.
 - After writing, the message counts books that were already up to date, for example
   "Updated 0 of 1 selected book(s). 1 already up to date; nothing needed changing."
+- Fix: settings are shared by all your libraries. Pressing OK in a library that lacks some
+  of your columns no longer removes those column mappings, their Overwrite and
+  Anthologies too ticks, or the Saved Metadata column for your other libraries. Such
+  columns show as "not in this library".
 - Fix: the message no longer says anthologies don't receive Saved Metadata after every
   anthology run. The preview mentions it only when Save all extracted metadata is on.
 

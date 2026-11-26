@@ -99,6 +99,13 @@ def get_prefs():
     return prefs
 
 
+def _add_other_library_column(combo, column_key, custom_columns):
+    """Settings are shared by every library: keep a Saved Metadata column this
+    library doesn't have, so saving here doesn't clear it for the others."""
+    if column_key and column_key not in custom_columns:
+        combo.addItem('%s (not in this library)' % column_key, column_key)
+
+
 class ConfigWidget(QWidget):
     """The Extract Metadata settings: the three write modes and shared
     options. (Until 1.3.0 a second tab held the separate anthology report
@@ -129,6 +136,7 @@ class ConfigWidget(QWidget):
         for key, column in sorted(self.custom_columns.items()):
             if column['datatype'] == 'comments' and key not in self.column_mapping:
                 self.dest_column.addItem(column['name'], key)
+        _add_other_library_column(self.dest_column, current, self.custom_columns)
         idx = self.dest_column.findData(current)
         self.dest_column.setCurrentIndex(max(0, idx))
         self.dest_column.blockSignals(False)
@@ -222,6 +230,7 @@ class ConfigWidget(QWidget):
         for key, column in sorted(custom_columns.items()):
             if column['datatype'] == 'comments':
                 self.dest_column.addItem(column['name'], key)
+        _add_other_library_column(self.dest_column, prefs[KEY_DEST_COLUMN], custom_columns)
         idx = self.dest_column.findData(prefs[KEY_DEST_COLUMN])
         self.dest_column.setCurrentIndex(idx if idx >= 0 else 0)
         col_row.addWidget(self.dest_column)
@@ -320,8 +329,10 @@ class ConfigWidget(QWidget):
 
     def _update_mode3_summary(self):
         n = len(self.column_mapping)
+        elsewhere = sum(1 for key in self.column_mapping if key not in self.custom_columns)
         self.mode3_summary.setText(
-            '%d column%s mapped.' % (n, '' if n == 1 else 's'))
+            '%d column%s mapped%s.' % (n, '' if n == 1 else 's',
+                                       ' (%d not in this library)' % elsewhere if elsewhere else ''))
 
     def save_settings(self):
         prefs = get_prefs()

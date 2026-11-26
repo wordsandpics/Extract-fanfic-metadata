@@ -292,6 +292,14 @@ class ColumnMappingDialog(QDialog):
         self.resize(800, 460)
         anthology_fields = anthology_fields or {}
         overwrite_fields = overwrite_fields or {}
+        # Settings are shared by every library. Keep what this library can't
+        # show: mappings to columns it doesn't have, and ticks for fields with
+        # no row here, so pressing OK doesn't drop them for other libraries.
+        self._other_library_mapping = {column_key: metadata_key
+                                       for column_key, metadata_key in current_mapping.items()
+                                       if column_key not in custom_columns}
+        self._previous_anthology_fields = dict(anthology_fields)
+        self._previous_overwrite_fields = dict(overwrite_fields)
 
         # current_mapping is {column_key: metadata_key} (matches how it's
         # stored/consumed elsewhere) -- invert it once for O(1) lookup of
@@ -455,14 +463,19 @@ class ColumnMappingDialog(QDialog):
                     result[metadata_key] = value
             elif control.isChecked():
                 result[metadata_key] = True
+        result.update({key: value for key, value in self._previous_anthology_fields.items()
+                       if key not in self.anthology_controls})
         return result
 
     def overwrite_fields(self):
-        return {metadata_key: True for metadata_key, control in self.overwrite_controls.items()
-                if control.isChecked()}
+        result = {metadata_key: True for metadata_key, control in self.overwrite_controls.items()
+                  if control.isChecked()}
+        result.update({key: value for key, value in self._previous_overwrite_fields.items()
+                       if key not in self.overwrite_controls})
+        return result
 
     def mapping(self):
-        result = {}
+        result = dict(self._other_library_mapping)
         for metadata_key, combo in self.rows:
             column_key = combo.itemData(combo.currentIndex())
             if column_key:

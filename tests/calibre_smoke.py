@@ -211,6 +211,27 @@ with plugin:
         assert get_prefs()['customOverwrite'] == {'fandoms': True}
         plugin_prefs[STORE_NAME] = prefs
         print('PASS: column-mapping Overwrite ticks load, change and save; sticky headings stay aligned at 560-1000 px and when scrolled either way.')
+        # Settings are shared by every library: OK in a library without some
+        # columns keeps those mappings, their ticks and the Saved Metadata column.
+        without_report = {k: v for k, v in columns.items() if k != '#report'}
+        other_library = dict(prefs['columnMapping'], **{'#gone': 'status'})
+        partial_dialog = ColumnMappingDialog(config, without_report, other_library, None, {'status': True},
+                                             {'collectionStoryReport': True, 'numWords': True})
+        kept = partial_dialog.mapping()
+        assert kept['#gone'] == 'status' and kept['#report'] == 'collectionStoryReport', kept
+        assert partial_dialog.overwrite_fields()['collectionStoryReport'] is True
+        assert partial_dialog.anthology_fields()['status'] is True
+        partial_dialog.close()
+        plugin_prefs[STORE_NAME] = dict(prefs, destColumn='#elsewhere', columnMapping=other_library)
+        elsewhere = ConfigWidget(action)
+        assert elsewhere.dest_column.currentData() == '#elsewhere', elsewhere.dest_column.currentText()
+        assert elsewhere.dest_column.currentText() == '#elsewhere (not in this library)'
+        assert elsewhere.mode3_summary.text() == '5 columns mapped (1 not in this library).', elsewhere.mode3_summary.text()
+        elsewhere.save_settings()
+        assert get_prefs()['destColumn'] == '#elsewhere' and get_prefs()['columnMapping']['#gone'] == 'status'
+        elsewhere.close()
+        plugin_prefs[STORE_NAME] = prefs
+        print('PASS: settings saved in a library missing some columns keep those mappings, ticks and the Saved Metadata column.')
         preview = PreviewDialog(gui, results)
         screenshots = os.environ.get('EXTRACT_METADATA_SCREENSHOTS')
         if screenshots:
